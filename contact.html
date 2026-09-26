@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Book a Counselling Call | Talentist Consultancy</title>
+    <meta
+      name="description"
+      content="Book a free 30-minute counselling call, visit a campus, or send an enquiry. Candidate FAQs on eligibility, fees, placement, and refunds."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="container site-header__inner">
+        <a class="brand" href="index.html">
+          <span class="brand__mark" aria-hidden="true">T</span>
+          <span>
+            Talentist
+            <span class="brand__sub">Train &middot; Certify &middot; Hire</span>
+          </span>
+        </a>
+
+        <button
+          class="nav-toggle"
+          type="button"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-controls="primary-nav"
+        >
+          <span class="nav-toggle__bars" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          Menu
+        </button>
+
+        <nav class="site-nav" id="primary-nav" aria-label="Primary">
+          <ul class="site-nav__list">
+            <li><a class="site-nav__link" href="index.html">Home</a></li>
+            <li><a class="site-nav__link" href="programs.html">Programs</a></li>
+            <li>
+              <a class="site-nav__link" href="employers.html">For Employers</a>
+            </li>
+            <li>
+              <a class="site-nav__link" href="success-stories.html"
+                >Success Stories</a
+              >
+            </li>
+            <li><a class="site-nav__link" href="about.html">About</a></li>
+            <li class="site-nav__cta">
+              <a
+                class="btn btn--primary btn--sm"
+                href="contact.html"
+                aria-current="page"
+                >Book a free counselling call</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="page-hero">
+        <div class="container">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <ol>
+              <li><a href="index.html">Home</a></li>
+              <li aria-current="page">Contact</li>
+            </ol>
+          </nav>
+          <h1>Book a free 30-minute counselling call</h1>
+          <p>
+            An aptitude read, an honest view of your hiring odds, and a
+            recommended track. If we don't think we can place you, we'll tell you
+            on this call rather than after you've paid.
+          </p>
+        </div>
+      </section>
+
+      <!-- ====================== FORM ================================= -->
+      <section class="section">
+        <div class="container split">
+          <form
+            class="form"
+            data-validate
+            data-success-message="Thanks. Your request is in. A counsellor will call you within one working day to confirm a slot."
+            novalidate
+          >
+            <h2 style="font-size: var(--step-2)">Candidate enquiry</h2>
+            <p style="color: var(--ink-muted)">
+              Fields marked <span class="req">*</span> are required.
+            </p>
+
+            <div class="form__grid">
+              <div class="field">
+                <label for="c-name">Full name <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="c-name"
+                  name="name"
+                  data-label="Full name"
+                  autocomplete="name"
+                  required
+                />
+                <p class="error-text" id="c-name-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field">
+                <label for="c-email">Email <span class="req">*</span></label>
+                <input
+                  type="email"
+                  id="c-email"
+                  name="email"
+                  data-label="Email"
+                  autocomplete="email"
+                  required
+                />
+                <p class="error-text" id="c-email-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field">
+                <label for="c-phone">Phone <span class="req">*</span></label>
+                <input
+                  type="tel"
+                  id="c-phone"
+                  name="phone"
+                  data-label="Phone"
+                  autocomplete="tel"
+                  required
+                />
+                <p class="hint">We'll call on this number to confirm a slot.</p>
+                <p class="error-text" id="c-phone-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field">
+                <label for="c-track"
+                  >Track of interest <span class="req">*</span></label
+                >
+                <select
+                  id="c-track"
+                  name="track"
+                  data-label="Track of interest"
+                  required
+                >
+                  <option value="">Select a track</option>
+                  <option>Full-Stack Java Development</option>
+                  <option>Data Engineering &amp; Analytics</option>
+                  <option>Cloud &amp; DevOps Engineering</option>
+                  <option>QA &amp; Test Automation</option>
+                  <option>Business Analysis &amp; Product Ops</option>
+                  <option>Not sure &ndash; recommend one for me</option>
+                </select>
+                <p class="error-text" id="c-track-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field">
+                <label for="c-status"
+                  >Current status <span class="req">*</span></label
+                >
+                <select
+                  id="c-status"
+                  name="status"
+                  data-label="Current status"
+                  required
+                >
+                  <option value="">Select one</option>
+                  <option>Final-year student</option>
+                  <option>Graduate, looking for a first job</option>
+                  <option>Working, want to switch fields</option>
+                  <option>Working in tech, want to upskill</option>
+                  <option>Returning after a career break</option>
+                </select>
+                <p class="error-text" id="c-status-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field">
+                <label for="c-format">Preferred batch format</label>
+                <select id="c-format" name="format" data-label="Batch format">
+                  <option value="">No preference</option>
+                  <option>Full-time day</option>
+                  <option>Weekday evening</option>
+                  <option>Weekend</option>
+                </select>
+                <p class="error-text" id="c-format-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field field--full">
+                <label for="c-message"
+                  >Your background and what you're aiming for
+                  <span class="req">*</span></label
+                >
+                <textarea
+                  id="c-message"
+                  name="message"
+                  data-label="Your background"
+                  required
+                  placeholder="Degree, any work experience, the kind of role you want, and any constraints on location or timing."
+                ></textarea>
+                <p class="hint">
+                  The more context you give, the more useful the call will be.
+                </p>
+                <p class="error-text" id="c-message-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field field--full">
+                <label class="checkbox" for="c-consent">
+                  <input
+                    type="checkbox"
+                    id="c-consent"
+                    name="consent"
+                    data-label="Consent"
+                    required
+                  />
+                  <span
+                    >I agree to be contacted about this enquiry and to
+                    Talentist storing these details for admissions purposes.
+                    <span class="req">*</span></span
+                  >
+                </label>
+                <p class="error-text" id="c-consent-error" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="btn-row" style="margin-top: 1rem">
+              <button class="btn btn--primary" type="submit">
+                Request my call
+              </button>
+              <a class="btn btn--outline" href="programs.html">See tracks first</a>
+            </div>
+
+            <p
+              class="form__status"
+              data-form-status
+              role="status"
+              aria-live="polite"
+            ></p>
+            <p class="hint" style="margin-top: 1rem">
+              Front-end demo only: this form validates and confirms locally.
+              Connect it to your CRM or mail endpoint before launch.
+            </p>
+          </form>
+
+          <div class="stack">
+            <div class="card">
+              <h3>Talk to us directly</h3>
+              <ul class="ticks">
+                <li>
+                  <span
+                    ><strong>Admissions:</strong>
+                    <a href="tel:+910000000000">+91 00000 00000</a></span
+                  >
+                </li>
+                <li>
+                  <span
+                    ><strong>Email:</strong>
+                    <a href="mailto:admissions@talentist.example"
+                      >admissions@talentist.example</a
+                    ></span
+                  >
+                </li>
+                <li>
+                  <span
+                    ><strong>Employers:</strong>
+                    <a href="mailto:partners@talentist.example"
+                      >partners@talentist.example</a
+                    ></span
+                  >
+                </li>
+                <li>
+                  <span
+                    ><strong>Hours:</strong> Monday to Saturday, 9:00 to
+                    19:00</span
+                  >
+                </li>
+              </ul>
+              <p style="margin-bottom: 0">
+                Placeholder contact details. Replace before launch.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3>Campus locations</h3>
+              <p>
+                <strong>Main campus</strong><br />
+                Address line 1, Address line 2<br />
+                City, PIN &middot; Landmark reference
+              </p>
+              <p style="margin-bottom: 0">
+                <strong>Second campus</strong><br />
+                Address line 1, Address line 2<br />
+                City, PIN &middot; Landmark reference
+              </p>
+            </div>
+
+            <div class="map-placeholder">
+              <p style="margin: 0">
+                Map embed goes here.<br />
+                Drop in the location iframe once addresses are confirmed.
+              </p>
+            </div>
+
+            <div class="card">
+              <h3>Hiring, not learning?</h3>
+              <p>
+                Employer requirements go to the placement desk directly, which is
+                faster than the admissions queue.
+              </p>
+              <a class="btn btn--secondary btn--sm" href="employers.html#request"
+                >Request talent</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================== WHAT HAPPENS NEXT ==================== -->
+      <section class="section section--tight section--alt">
+        <div class="container">
+          <div class="section-head">
+            <span class="eyebrow">After you submit</span>
+            <h2>What the next 48 hours look like</h2>
+          </div>
+          <ol class="steps">
+            <li>
+              <h3>Callback within one working day</h3>
+              <p>
+                A counsellor confirms a 30-minute slot that suits you, including
+                evenings.
+              </p>
+            </li>
+            <li>
+              <h3>Aptitude test link</h3>
+              <p>
+                20 minutes, online, no preparation needed. Take it before the call
+                if you can.
+              </p>
+            </li>
+            <li>
+              <h3>The counselling call</h3>
+              <p>
+                Track recommendation, an honest read on your hiring odds, fee
+                options, and the batch calendar.
+              </p>
+            </li>
+            <li>
+              <h3>Your decision, no pressure</h3>
+              <p>
+                We hold a provisional seat for five days. No follow-up spam if you
+                pass.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- ====================== FAQ ================================== -->
+      <section class="section" id="faq">
+        <div class="container container--narrow">
+          <div class="section-head section-head--center">
+            <span class="eyebrow">FAQ</span>
+            <h2>Candidate questions, answered plainly</h2>
+          </div>
+
+          <div class="accordion">
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="true"
+                  aria-controls="faq-1"
+                  id="faq-1-trigger"
+                >
+                  Is placement guaranteed?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-1"
+                role="region"
+                aria-labelledby="faq-1-trigger"
+              >
+                <p>
+                  We guarantee the placement process, not an offer letter. Every
+                  candidate who clears certification gets a minimum of eight
+                  scheduled interviews with hiring partners and stays in the cycle
+                  at no extra cost until placed or until they withdraw. Anyone
+                  promising a guaranteed job before you've interviewed is
+                  guessing.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="false"
+                  aria-controls="faq-2"
+                  id="faq-2-trigger"
+                >
+                  What does it cost, and can I pay after placement?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-2"
+                role="region"
+                aria-labelledby="faq-2-trigger"
+                hidden
+              >
+                <p>
+                  Three options: upfront at the lowest total cost, equal monthly
+                  instalments during training, or income share where a small
+                  deposit is followed by instalments that start only after you
+                  join a role above an agreed salary floor. Under income share,
+                  nothing further is due if you are not placed within 12 months.
+                  Full amounts are on the
+                  <a href="programs.html#fees">programs page</a> and confirmed on
+                  the counselling call.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="false"
+                  aria-controls="faq-3"
+                  id="faq-3-trigger"
+                >
+                  Do I need a technical degree or prior coding experience?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-3"
+                role="region"
+                aria-labelledby="faq-3-trigger"
+                hidden
+              >
+                <p>
+                  Not for every track. QA, Cloud, and Business Analysis accept any
+                  graduate who clears the aptitude test. Full-Stack Java and Data
+                  Engineering expect basic programming logic, and our free
+                  two-week bridge module covers that if you're starting from
+                  zero.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="false"
+                  aria-controls="faq-4"
+                  id="faq-4-trigger"
+                >
+                  Can I train while working full time?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-4"
+                role="region"
+                aria-labelledby="faq-4-trigger"
+                hidden
+              >
+                <p>
+                  Yes. Every track runs in weekday-evening and weekend formats
+                  alongside the full-time day batch, and sessions are recorded for
+                  12 months. Expect 12 to 22 hours a week depending on the track.
+                  Placement interviews are scheduled around your availability,
+                  though we ask for flexibility in the final two weeks.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="false"
+                  aria-controls="faq-5"
+                  id="faq-5-trigger"
+                >
+                  Is the training online, in person, or both?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-5"
+                role="region"
+                aria-labelledby="faq-5-trigger"
+                hidden
+              >
+                <p>
+                  Every batch is hybrid: attend on campus or join live online,
+                  switching week to week as you need. Two things we ask you to
+                  attend in person if you're within travel distance: the capstone
+                  review and the mock interview panel days.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="false"
+                  aria-controls="faq-6"
+                  id="faq-6-trigger"
+                >
+                  What's your refund policy?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-6"
+                role="region"
+                aria-labelledby="faq-6-trigger"
+                hidden
+              >
+                <p>
+                  Withdraw within the first seven days of a batch for a full
+                  refund less the enrolment deposit. After that, refunds are
+                  pro-rated against modules delivered up to the halfway point of
+                  the track. The complete policy is part of the enrolment
+                  agreement, which we send before you pay anything, not after.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="false"
+                  aria-controls="faq-7"
+                  id="faq-7-trigger"
+                >
+                  Will I be asked to sign a bond?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-7"
+                role="region"
+                aria-labelledby="faq-7-trigger"
+                hidden
+              >
+                <p>
+                  No service bonds, and we never hold original certificates. The
+                  income-share option creates a payment obligation to us once
+                  you're earning above the agreed floor. It does not restrict
+                  which employer you join or how long you stay.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion__item">
+              <h3 class="accordion__heading">
+                <button
+                  class="accordion__trigger"
+                  type="button"
+                  data-accordion-trigger
+                  aria-expanded="false"
+                  aria-controls="faq-8"
+                  id="faq-8-trigger"
+                >
+                  What if I'm not placed after the first cycle?
+                  <span class="icon" aria-hidden="true">+</span>
+                </button>
+              </h3>
+              <div
+                class="accordion__panel"
+                id="faq-8"
+                role="region"
+                aria-labelledby="faq-8-trigger"
+                hidden
+              >
+                <p>
+                  You re-enter the next placement cycle at no additional cost,
+                  with a fresh set of at least eight interviews, a resume rewrite,
+                  two more mock rounds, and refresher access to any module. Full
+                  detail, including the 8% who aren't placed in six months, is on
+                  the <a href="success-stories.html">outcomes page</a>.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <a class="brand" href="index.html">
+              <span class="brand__mark" aria-hidden="true">T</span>
+              <span>
+                Talentist
+                <span class="brand__sub"
+                  >Train &middot; Certify &middot; Hire</span
+                >
+              </span>
+            </a>
+            <p style="margin-top: 1rem">
+              A train-and-hire consultancy. We build job-ready professionals and
+              place them with companies that need them.
+            </p>
+          </div>
+
+          <div>
+            <h3>Programs</h3>
+            <ul>
+              <li><a href="programs.html#full-stack-java">Full-Stack Java</a></li>
+              <li><a href="programs.html#data-engineering">Data Engineering</a></li>
+              <li><a href="programs.html#cloud-devops">Cloud &amp; DevOps</a></li>
+              <li><a href="programs.html#qa-automation">QA Automation</a></li>
+              <li>
+                <a href="programs.html#business-analysis">Business Analysis</a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3>Company</h3>
+            <ul>
+              <li><a href="about.html">About us</a></li>
+              <li><a href="employers.html">For employers</a></li>
+              <li><a href="success-stories.html">Success stories</a></li>
+              <li><a href="contact.html">Contact</a></li>
+              <li><a href="contact.html#faq">FAQ</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3>Get in touch</h3>
+            <ul>
+              <li>
+                <a href="mailto:hello@talentist.example"
+                  >hello@talentist.example</a
+                >
+              </li>
+              <li><a href="tel:+910000000000">+91 00000 00000</a></li>
+              <li>Mon&ndash;Sat, 9:00&ndash;19:00</li>
+              <li>Campus address line 1, City</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-note">
+          <p>
+            &copy; <span data-year>2026</span> Talentist Consultancy.
+            Figures and contact details on this site are placeholders for
+            design review.
+          </p>
+          <p>Privacy &middot; Terms &middot; Refund policy</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>
