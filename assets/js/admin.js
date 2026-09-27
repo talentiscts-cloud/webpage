@@ -37,6 +37,54 @@
   var STORE_KEY = "talentis.admin.candidates.v1";
   var SESSION_KEY = "talentis.admin.session";
 
+  /* --- Storage, defensively ----------------------------------------- *
+   * Browsers do not politely return null when storage is off limits, they
+   * throw. Safari raises a SecurityError for pages opened as file://, and
+   * private windows can refuse writes. An unguarded access here used to abort
+   * setup before the login handler was attached, so the form submitted
+   * natively, the page reloaded, and the fields simply emptied with no error.
+   * Everything now goes through a probe with an in-memory fallback, so the
+   * dashboard still works even where nothing can be persisted.
+   * ------------------------------------------------------------------ */
+
+  function probeStorage(kind) {
+    try {
+      var store = window[kind];
+      if (!store) return null;
+      var probe = "__talentis_probe__";
+      store.setItem(probe, "1");
+      store.removeItem(probe);
+      return store;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  var memoryCells = {};
+
+  function memoryStore(prefix) {
+    return {
+      getItem: function (key) {
+        var k = prefix + key;
+        return Object.prototype.hasOwnProperty.call(memoryCells, k)
+          ? memoryCells[k]
+          : null;
+      },
+      setItem: function (key, value) {
+        memoryCells[prefix + key] = String(value);
+      },
+      removeItem: function (key) {
+        delete memoryCells[prefix + key];
+      },
+    };
+  }
+
+  var realLocal = probeStorage("localStorage");
+  var realSession = probeStorage("sessionStorage");
+  var persistentStore = realLocal || memoryStore("local:");
+  var sessionStore = realSession || memoryStore("session:");
+  var storageBlocked = !realLocal;
+
   /* --- Money helpers ------------------------------------------------ */
 
   // Indian digit grouping, whole rupees: 453100 -> "Rs 4,53,100".
@@ -159,7 +207,7 @@
 
   function load() {
     try {
-      var raw = window.localStorage.getItem(STORE_KEY);
+      var raw = persistentStore.getItem(STORE_KEY);
       if (!raw) return;
       var parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.candidates)) {
@@ -174,7 +222,7 @@
 
   function save() {
     try {
-      window.localStorage.setItem(
+      persistentStore.setItem(
         STORE_KEY,
         JSON.stringify({ version: 1, savedAt: new Date().toISOString(), candidates: state.candidates })
       );
@@ -254,15 +302,9 @@
       render();
     }
 
-    // Stay signed in across reloads within this tab only.
-    var active = window.sessionStorage.getItem(SESSION_KEY);
-    if (active) {
-      enter(active);
-    } else {
-      screen.hidden = false;
-      app.hidden = true;
-    }
-
+    // Attach the submit handler FIRST, before anything that could throw.
+    // If setup fails after this point the worst case is a cosmetic glitch,
+    // rather than a form that silently reloads the page.
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       var email = document.getElementById("login-email").value.trim();
@@ -276,7 +318,7 @@
         password === ADMIN_PASSWORD
       ) {
         error.textContent = "";
-        window.sessionStorage.setItem(SESSION_KEY, email);
+        sessionStore.setItem(SESSION_KEY, email);
         document.getElementById("login-password").value = "";
         enter(email);
       } else {
@@ -299,11 +341,28 @@
     }
 
     document.getElementById("sign-out").addEventListener("click", function () {
-      window.sessionStorage.removeItem(SESSION_KEY);
+      sessionStore.removeItem(SESSION_KEY);
       app.hidden = true;
       screen.hidden = false;
       document.getElementById("login-email").focus();
     });
+
+    // Warn when nothing can be persisted, which is the usual consequence of
+    // opening this file directly instead of serving it.
+    if (storageBlocked) {
+      var warn = document.getElementById("login-storage-warn");
+      if (warn) warn.hidden = false;
+    }
+
+    // Session restore goes LAST, so a failure here cannot stop the form
+    // working. Anything it touches is already wrapped.
+    var active = sessionStore.getItem(SESSION_KEY);
+    if (active) {
+      enter(active);
+    } else {
+      screen.hidden = false;
+      app.hidden = true;
+    }
   }
 
   /* --- Rendering ---------------------------------------------------- */
@@ -818,12 +877,27 @@
 
   /* --- Wiring ------------------------------------------------------- */
 
-  function init() {
-    load();
-    initLogin();
-    initPaymentsDialog();
-    initBackup();
+  /**
+   * Run a setup step in isolation. One broken feature should never take the
+   * whole page down with it, and least of all the sign-in form.
+   */
+  function step(name, fn) {
+    try {
+      fn();
+    } catch (err) {
+      console.error("admin dashboard: " + name + " failed to initialise", err);
+    }
+  }
 
+  function init() {
+    step("load", load);
+    step("login", initLogin);
+    step("payments dialog", initPaymentsDialog);
+    step("backup", initBackup);
+    step("controls", initControls);
+  }
+
+  function initControls() {
     document.getElementById("add-candidate").addEventListener("click", function () {
       openCandidate(null);
     });
