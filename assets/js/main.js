@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Talentist Consultancy — shared behaviours
+   Talentis Consultancy — shared behaviours
    Progressive enhancement only: every page is readable and usable with JS off.
    No backend yet, so form submissions are validated and acknowledged locally.
    ========================================================================== */

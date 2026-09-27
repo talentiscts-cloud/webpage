@@ -1,0 +1,522 @@
+/* ==========================================================================
+   Talentis — admin fee dashboard
+   Loaded on top of styles.css, so it inherits the same tokens and type scale.
+   Admin-only screen: never linked from the public site, and marked noindex.
+   ========================================================================== */
+
+/* --- Login gate --------------------------------------------------------- */
+.login-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-lg);
+  background:
+    radial-gradient(
+      800px 420px at 80% 0%,
+      rgba(47, 111, 208, 0.42),
+      transparent 60%
+    ),
+    var(--navy-900);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.login-card .brand {
+  margin-bottom: var(--space-lg);
+}
+
+.login-card h1 {
+  font-size: var(--step-2);
+  margin-bottom: var(--space-2xs);
+}
+
+.login-card .sub {
+  color: var(--ink-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.login-card .field + .field {
+  margin-top: var(--space-md);
+}
+
+.login-card button[type="submit"] {
+  width: 100%;
+  margin-top: var(--space-lg);
+}
+
+.login-note {
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--line);
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+}
+
+/* --- App shell ---------------------------------------------------------- */
+.admin-header {
+  background: var(--navy-900);
+  color: #fff;
+  padding-block: var(--space-md);
+}
+
+.admin-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.admin-header .brand,
+.admin-header .brand__sub {
+  color: #fff;
+}
+
+.admin-header__who {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--step--1);
+  color: #b7c6dd;
+  flex-wrap: wrap;
+}
+
+.admin-main {
+  padding-block: var(--space-xl) var(--space-2xl);
+  background: var(--surface-alt);
+  min-height: 70vh;
+}
+
+.admin-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
+}
+
+.admin-title h1 {
+  font-size: var(--step-3);
+  margin: 0;
+}
+
+.admin-title p {
+  margin: var(--space-2xs) 0 0;
+  color: var(--ink-muted);
+}
+
+/* --- Summary tiles ------------------------------------------------------ */
+.tiles {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  margin-bottom: var(--space-xl);
+}
+
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.tile dt {
+  font-size: var(--step--1);
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.tile dd {
+  margin: var(--space-2xs) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  font-weight: 800;
+  color: var(--navy-900);
+  line-height: 1.15;
+}
+
+.tile--accent {
+  border-left: 4px solid var(--amber-500);
+}
+
+.tile--good {
+  border-left: 4px solid var(--teal-700);
+}
+
+/* --- Toolbar ------------------------------------------------------------ */
+.toolbar {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: var(--space-lg);
+}
+
+.toolbar .field {
+  min-width: 190px;
+}
+
+.toolbar__spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar__actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* --- Candidate table --------------------------------------------------- */
+.admin-table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 940px;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--step--1);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.admin-table thead th {
+  background: var(--surface-alt);
+  font-family: var(--font-display);
+  color: var(--navy-900);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.admin-table tbody tr:hover {
+  background: #fbfcfe;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.admin-table .name {
+  font-weight: 700;
+  color: var(--navy-900);
+}
+
+.admin-table .name small {
+  display: block;
+  font-weight: 400;
+  color: var(--ink-muted);
+}
+
+.row-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+/* --- Badges ------------------------------------------------------------- */
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.25em 0.7em;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.badge--training {
+  background: var(--blue-100);
+  color: var(--navy-700);
+}
+
+.badge--placed {
+  background: var(--teal-100);
+  color: #0a6055;
+}
+
+.badge--withdrawn {
+  background: #eef0f4;
+  color: #4a5568;
+}
+
+.badge--due {
+  background: var(--amber-100);
+  color: #8a5800;
+}
+
+.badge--clear {
+  background: #e8f6ee;
+  color: var(--success);
+}
+
+/* --- Dialogs ------------------------------------------------------------ */
+dialog {
+  border: 0;
+  border-radius: var(--radius-lg);
+  padding: 0;
+  width: min(760px, calc(100vw - 2rem));
+  max-height: calc(100vh - 3rem);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+}
+
+dialog::backdrop {
+  background: rgba(11, 27, 51, 0.55);
+}
+
+.dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-lg) var(--space-md);
+  border-bottom: 1px solid var(--line);
+}
+
+.dialog__head h2 {
+  font-size: var(--step-2);
+  margin: 0;
+}
+
+.dialog__head p {
+  margin: var(--space-2xs) 0 0;
+  color: var(--ink-muted);
+  font-size: var(--step--1);
+}
+
+.dialog__body {
+  padding: var(--space-lg);
+  overflow-y: auto;
+  max-height: min(62vh, 560px);
+}
+
+.dialog__foot {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  align-items: center;
+  padding: var(--space-md) var(--space-lg) var(--space-lg);
+  border-top: 1px solid var(--line);
+}
+
+.dialog__foot .spacer {
+  flex: 1 1 auto;
+}
+
+.icon-btn {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--navy-800);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  background: var(--surface-sunk);
+}
+
+/* --- Fieldset groups in the dialog ------------------------------------- */
+.group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  margin: 0 0 var(--space-lg);
+}
+
+.group:last-child {
+  margin-bottom: 0;
+}
+
+.group > legend {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-0);
+  color: var(--navy-900);
+  padding-inline: var(--space-xs);
+}
+
+/* --- Live fee calculation readout -------------------------------------- */
+.calc {
+  display: grid;
+  gap: var(--space-xs);
+  background: var(--navy-900);
+  color: #dbe5f3;
+  border-radius: var(--radius);
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.calc__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-md);
+  font-size: var(--step--1);
+}
+
+.calc__row b {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc__row--total {
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding-top: var(--space-xs);
+  margin-top: var(--space-2xs);
+}
+
+.calc__row--total b {
+  color: var(--amber-500);
+}
+
+.calc__hint {
+  font-size: var(--step--1);
+  color: #9fb2cd;
+  margin: 0;
+}
+
+/* --- EMI schedule ------------------------------------------------------ */
+.emi-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.emi-table th,
+.emi-table td {
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--line);
+  font-size: var(--step--1);
+  text-align: left;
+}
+
+.emi-table thead th {
+  background: var(--surface-alt);
+  font-family: var(--font-display);
+  white-space: nowrap;
+}
+
+.emi-table td input[type="date"],
+.emi-table td input[type="number"] {
+  padding: 0.35rem 0.5rem;
+  font-size: var(--step--1);
+  min-width: 118px;
+}
+
+.emi-table td.paid-cell {
+  text-align: center;
+}
+
+.emi-table td.paid-cell input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.emi-table tr.is-paid {
+  background: #f4fbf7;
+}
+
+.emi-table tfoot td {
+  font-weight: 700;
+  color: var(--navy-900);
+  border-bottom: 0;
+}
+
+/* --- Misc --------------------------------------------------------------- */
+.admin-empty {
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+  color: var(--ink-muted);
+}
+
+.admin-empty h2 {
+  font-size: var(--step-1);
+}
+
+.warn-strip {
+  background: var(--amber-100);
+  border: 1px solid #f0d49b;
+  border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  font-size: var(--step--1);
+  color: #6b4500;
+}
+
+.warn-strip strong {
+  color: #6b4500;
+}
+
+.warn-strip p {
+  margin: 0;
+  max-width: none;
+}
+
+.warn-strip p + p {
+  margin-top: var(--space-xs);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-lg);
+  transform: translateX(-50%);
+  background: var(--navy-900);
+  color: #fff;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--step--1);
+  font-weight: 600;
+  z-index: 300;
+}
+
+.toast[hidden] {
+  display: none;
+}
+
+@media print {
+  .toolbar,
+  .admin-header__who,
+  .row-actions {
+    display: none;
+  }
+}

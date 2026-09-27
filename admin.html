@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<!--
+  Talentis — admin fee dashboard.
+
+  Not linked from any public page and marked noindex. Candidate data is held in
+  this browser's local storage only: nothing is uploaded, so there is no shared
+  database for anyone else to reach. Set the sign-in credentials at the top of
+  assets/js/admin.js. That gate is a screen lock, not real security, because
+  anything in a static file can be read with View Source.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Fee Dashboard | Talentis Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/styles.css" />
+    <link rel="stylesheet" href="assets/css/admin.css" />
+  </head>
+  <body>
+    <!-- ======================= LOGIN ======================= -->
+    <div class="login-screen" id="login-screen">
+      <form class="login-card" id="login-form" novalidate>
+        <span class="brand">
+          <span class="brand__mark" aria-hidden="true">T</span>
+          <span>
+            Talentis
+            <span class="brand__sub">Admin</span>
+          </span>
+        </span>
+
+        <h1>Fee dashboard</h1>
+        <p class="sub">Sign in to manage candidate fees and instalments.</p>
+
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input
+            type="email"
+            id="login-email"
+            name="email"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input
+            type="password"
+            id="login-password"
+            name="password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+
+        <p class="error-text" id="login-error" role="alert" aria-live="assertive"></p>
+
+        <button class="btn btn--primary" type="submit">Sign in</button>
+
+        <p class="login-note">
+          Records are stored in this browser only and are never uploaded. Export a
+          backup regularly from the dashboard, and remember that clearing site
+          data for this domain will erase them.
+        </p>
+      </form>
+    </div>
+
+    <!-- ======================= APP ======================= -->
+    <div id="app" hidden>
+      <header class="admin-header">
+        <div class="container admin-header__inner">
+          <span class="brand">
+            <span class="brand__mark" aria-hidden="true">T</span>
+            <span>
+              Talentis
+              <span class="brand__sub">Fee dashboard</span>
+            </span>
+          </span>
+          <div class="admin-header__who">
+            <span id="who-label">Signed in</span>
+            <button class="btn btn--ghost btn--sm" type="button" id="sign-out">
+              Sign out
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="admin-main" id="main">
+        <div class="container">
+          <div class="admin-title">
+            <div>
+              <h1>Candidates &amp; fees</h1>
+              <p>
+                Registration is &#8377;5,000 per candidate. The placement fee is
+                10% of CTC, calculated the moment you enter it.
+              </p>
+            </div>
+            <button class="btn btn--primary" type="button" id="add-candidate">
+              + Add candidate
+            </button>
+          </div>
+
+          <div class="warn-strip">
+            <p>
+              <strong>Data lives in this browser.</strong> It is not on a server
+              and not shared between devices or browser profiles.
+            </p>
+            <p>
+              Use <strong>Export backup</strong> before clearing your browser data
+              or switching machines, then <strong>Import</strong> on the other
+              side.
+            </p>
+          </div>
+
+          <!-- Summary -->
+          <dl class="tiles" id="tiles">
+            <div class="tile">
+              <dt>Candidates</dt>
+              <dd id="t-total">0</dd>
+            </div>
+            <div class="tile">
+              <dt>In training</dt>
+              <dd id="t-training">0</dd>
+            </div>
+            <div class="tile">
+              <dt>Placed</dt>
+              <dd id="t-placed">0</dd>
+            </div>
+            <div class="tile">
+              <dt>Registration collected</dt>
+              <dd id="t-reg">&#8377;0</dd>
+            </div>
+            <div class="tile tile--good">
+              <dt>Placement fees collected</dt>
+              <dd id="t-collected">&#8377;0</dd>
+            </div>
+            <div class="tile tile--accent">
+              <dt>Outstanding</dt>
+              <dd id="t-pending">&#8377;0</dd>
+            </div>
+          </dl>
+
+          <!-- Toolbar -->
+          <div class="toolbar">
+            <div class="field">
+              <label for="search">Search by name</label>
+              <input type="search" id="search" placeholder="e.g. Shoaib" />
+            </div>
+            <div class="field">
+              <label for="status-filter">Status</label>
+              <select id="status-filter">
+                <option value="all">All</option>
+                <option value="training">In training</option>
+                <option value="placed">Placed</option>
+                <option value="withdrawn">Withdrawn</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sort-by">Sort by</label>
+              <select id="sort-by">
+                <option value="name">Name</option>
+                <option value="pending">Outstanding (high to low)</option>
+                <option value="ctc">CTC (high to low)</option>
+                <option value="recent">Recently added</option>
+              </select>
+            </div>
+            <span class="toolbar__spacer"></span>
+            <div class="toolbar__actions">
+              <button class="btn btn--outline btn--sm" type="button" id="export">
+                Export backup
+              </button>
+              <button class="btn btn--outline btn--sm" type="button" id="import">
+                Import
+              </button>
+              <input
+                type="file"
+                id="import-file"
+                accept="application/json,.json"
+                class="visually-hidden"
+                tabindex="-1"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+
+          <p class="visually-hidden" id="live-count" aria-live="polite"></p>
+
+          <!-- Table -->
+          <div class="admin-table-wrap" id="table-wrap">
+            <table class="admin-table">
+              <caption class="visually-hidden">
+                Candidates with fee status. Registration is &#8377;5,000 each and
+                the placement fee is 10% of CTC.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Candidate</th>
+                  <th scope="col">Track</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Registration</th>
+                  <th scope="col" class="num">CTC</th>
+                  <th scope="col" class="num">Fee (10%)</th>
+                  <th scope="col" class="num">Paid</th>
+                  <th scope="col" class="num">Pending</th>
+                  <th scope="col">EMIs</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <div class="admin-empty" id="empty" hidden>
+            <h2>No candidates yet</h2>
+            <p>
+              Add your first candidate to start tracking registration and
+              placement fees.
+            </p>
+            <button class="btn btn--primary" type="button" id="add-first">
+              + Add candidate
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ======================= CANDIDATE DIALOG ======================= -->
+    <dialog id="candidate-dialog" aria-labelledby="cd-title">
+      <form id="candidate-form" novalidate>
+        <div class="dialog__head">
+          <div>
+            <h2 id="cd-title">Add candidate</h2>
+            <p>Registration &#8377;5,000 &middot; placement fee 10% of CTC</p>
+          </div>
+          <button
+            class="icon-btn"
+            type="button"
+            data-close-dialog
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div class="dialog__body">
+          <fieldset class="group">
+            <legend>Candidate</legend>
+            <div class="form__grid">
+              <div class="field">
+                <label for="f-name">Full name <span class="req">*</span></label>
+                <input type="text" id="f-name" data-label="Full name" required />
+                <p class="error-text" id="f-name-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="f-phone">Phone</label>
+                <input type="tel" id="f-phone" data-label="Phone" />
+                <p class="error-text" id="f-phone-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="f-email">Email</label>
+                <input type="email" id="f-email" data-label="Email" />
+                <p class="error-text" id="f-email-error" aria-live="polite"></p>
+              </div>
+              <div class="field">
+                <label for="f-track">Track</label>
+                <select id="f-track">
+                  <option value="">Not set</option>
+                  <option>Full-Stack Java</option>
+                  <option>Data Engineering</option>
+                  <option>Cloud &amp; DevOps</option>
+                  <option>QA Automation</option>
+                  <option>Business Analysis</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f-admission">Admission date</label>
+                <input type="date" id="f-admission" />
+              </div>
+              <div class="field">
+                <label for="f-status">Status</label>
+                <select id="f-status">
+                  <option value="training">In training</option>
+                  <option value="placed">Placed</option>
+                  <option value="withdrawn">Withdrawn</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Registration fee (&#8377;5,000)</legend>
+            <div class="form__grid">
+              <div class="field">
+                <label class="checkbox" for="f-reg-paid">
+                  <input type="checkbox" id="f-reg-paid" />
+                  <span>&#8377;5,000 registration received</span>
+                </label>
+              </div>
+              <div class="field">
+                <label for="f-reg-date">Date received</label>
+                <input type="date" id="f-reg-date" />
+              </div>
+            </div>
+            <p class="hint" style="margin: 0.5rem 0 0">
+              Non-refundable, and separate from the 10%. It is not deducted from
+              the placement fee.
+            </p>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Placement &amp; fee</legend>
+            <div class="form__grid">
+              <div class="field">
+                <label for="f-employer">Employer</label>
+                <input type="text" id="f-employer" />
+              </div>
+              <div class="field">
+                <label for="f-joining">Joining date</label>
+                <input type="date" id="f-joining" />
+              </div>
+              <div class="field">
+                <label for="f-first-salary">First salary date</label>
+                <input type="date" id="f-first-salary" />
+                <p class="hint">The 10% falls due after this date.</p>
+              </div>
+              <div class="field">
+                <label for="f-ctc">Annual CTC (&#8377;)</label>
+                <input
+                  type="number"
+                  id="f-ctc"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="453100"
+                />
+                <p class="hint">Enter digits only. The 10% updates as you type.</p>
+                <p class="error-text" id="f-ctc-error" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div class="calc" aria-live="polite">
+              <div class="calc__row">
+                <span>CTC entered</span>
+                <b id="calc-ctc">&#8377;0</b>
+              </div>
+              <div class="calc__row">
+                <span>Placement fee at 10%</span>
+                <b id="calc-fee">&#8377;0</b>
+              </div>
+              <div class="calc__row">
+                <span>Registration</span>
+                <b id="calc-reg">&#8377;5,000</b>
+              </div>
+              <div class="calc__row calc__row--total">
+                <span>Total payable by candidate</span>
+                <b id="calc-total">&#8377;5,000</b>
+              </div>
+              <p class="calc__hint">No GST applied.</p>
+            </div>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Instalments</legend>
+            <div class="form__grid">
+              <div class="field">
+                <label for="f-emi-count">Split the 10% into</label>
+                <select id="f-emi-count">
+                  <option value="1">1 payment (no EMI)</option>
+                  <option value="2">2 EMIs</option>
+                  <option value="3">3 EMIs</option>
+                  <option value="4">4 EMIs</option>
+                  <option value="5">5 EMIs</option>
+                  <option value="6">6 EMIs</option>
+                  <option value="9">9 EMIs</option>
+                  <option value="12">12 EMIs</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f-emi-start">First instalment due</label>
+                <input type="date" id="f-emi-start" />
+                <p class="hint">Later instalments fall monthly after this.</p>
+              </div>
+            </div>
+            <p class="hint" id="emi-preview" style="margin: 0.75rem 0 0"></p>
+            <p class="hint" style="margin: 0.5rem 0 0">
+              Changing the CTC or the number of instalments rebuilds the schedule.
+              Payments already recorded are preserved where the instalment still
+              exists.
+            </p>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>Notes</legend>
+            <div class="field">
+              <label for="f-notes" class="visually-hidden">Notes</label>
+              <textarea
+                id="f-notes"
+                rows="3"
+                placeholder="Anything worth remembering about this candidate's payments."
+                style="min-height: 84px"
+              ></textarea>
+            </div>
+          </fieldset>
+        </div>
+
+        <div class="dialog__foot">
+          <button class="btn btn--primary" type="submit">Save candidate</button>
+          <button class="btn btn--outline" type="button" data-close-dialog>
+            Cancel
+          </button>
+          <span class="spacer"></span>
+          <button class="btn btn--sm btn--outline" type="button" id="delete-candidate">
+            Delete
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ======================= PAYMENTS DIALOG ======================= -->
+    <dialog id="emi-dialog" aria-labelledby="ed-title">
+      <div class="dialog__head">
+        <div>
+          <h2 id="ed-title">Record payments</h2>
+          <p id="ed-sub">&nbsp;</p>
+        </div>
+        <button
+          class="icon-btn"
+          type="button"
+          data-close-dialog
+          aria-label="Close"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div class="dialog__body">
+        <div class="table-wrap" style="border: 0">
+          <table class="emi-table">
+            <caption class="visually-hidden">
+              Instalment schedule with amounts, due dates, and payment status.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Due date</th>
+                <th scope="col">Amount due</th>
+                <th scope="col">Paid</th>
+                <th scope="col">Amount received</th>
+                <th scope="col">Date received</th>
+              </tr>
+            </thead>
+            <tbody id="emi-rows"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2">Total</td>
+                <td id="emi-total-due">&#8377;0</td>
+                <td></td>
+                <td id="emi-total-paid">&#8377;0</td>
+                <td id="emi-total-pending"></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="hint" style="margin-top: 1rem">
+          Amount received defaults to the amount due, but you can change it for a
+          part payment. Anything still outstanding stays in the pending total.
+        </p>
+      </div>
+
+      <div class="dialog__foot">
+        <button class="btn btn--primary" type="button" id="emi-save">
+          Save payments
+        </button>
+        <button class="btn btn--outline" type="button" data-close-dialog>
+          Cancel
+        </button>
+      </div>
+    </dialog>
+
+    <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
+
+    <script src="assets/js/admin.js"></script>
+  </body>
+</html>
