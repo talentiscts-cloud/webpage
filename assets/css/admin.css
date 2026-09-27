@@ -4,6 +4,18 @@
    Admin-only screen: never linked from the public site, and marked noindex.
    ========================================================================== */
 
+/* --- The hidden attribute must always win -------------------------------
+   The UA stylesheet's `[hidden] { display: none }` carries almost no
+   specificity, so any class rule that sets `display` silently defeats it.
+   That is exactly what happened here: `.login-screen` sets `display: grid`,
+   so hiding it in JS set the attribute but left the card on screen at
+   100vh, covering the dashboard that had just rendered behind it. Sign-in
+   looked broken when it had actually succeeded.
+   ----------------------------------------------------------------------- */
+[hidden] {
+  display: none !important;
+}
+
 /* --- Login gate --------------------------------------------------------- */
 .login-screen {
   min-height: 100vh;
