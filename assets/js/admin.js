@@ -895,6 +895,9 @@
     step("payments dialog", initPaymentsDialog);
     step("backup", initBackup);
     step("controls", initControls);
+    // Tells the inline watchdog in admin.html that startup completed, so it
+    // knows not to show the "script didn't start" warning.
+    window.__adminReady = true;
   }
 
   function initControls() {

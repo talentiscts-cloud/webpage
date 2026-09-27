@@ -22,11 +22,46 @@
     />
     <link rel="stylesheet" href="assets/css/styles.css" />
     <link rel="stylesheet" href="assets/css/admin.css" />
+    <script>
+      /* Runs before anything else so it can catch failures in admin.js itself.
+         Turns "nothing happened" into a message on screen. */
+      (function () {
+        function show(id, text) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          if (text) el.innerHTML = text;
+          el.hidden = false;
+        }
+        window.addEventListener("error", function (e) {
+          show(
+            "crash-report",
+            "<strong>Something broke while loading.</strong> " +
+              String(e.message || "Unknown error") +
+              "<br>at " +
+              String(e.filename || "?").split("/").pop() +
+              " line " +
+              e.lineno
+          );
+        });
+        // If admin.js never signals that it started, say so.
+        window.addEventListener("load", function () {
+          window.setTimeout(function () {
+            if (!window.__adminReady) show("boot-warning");
+          }, 1200);
+        });
+      })();
+    </script>
   </head>
   <body>
     <!-- ======================= LOGIN ======================= -->
     <div class="login-screen" id="login-screen">
-      <form class="login-card" id="login-form" novalidate>
+      <!--
+        onsubmit="return false" is belt and braces. If admin.js fails to load or
+        errors before attaching its handler, the browser would otherwise perform
+        a native GET submit: the page reloads, the fields empty, and no message
+        appears. This inline attribute makes that failure mode impossible.
+      -->
+      <form class="login-card" id="login-form" novalidate onsubmit="return false">
         <span class="brand">
           <span class="brand__mark" aria-hidden="true">T</span>
           <span>
@@ -37,6 +72,25 @@
 
         <h1>Fee dashboard</h1>
         <p class="sub">Sign in to manage candidate fees and instalments.</p>
+
+        <noscript>
+          <p class="warn-strip">
+            <strong>JavaScript is switched off.</strong> This dashboard cannot run
+            without it. Enable JavaScript for this site and reload.
+          </p>
+        </noscript>
+
+        <!-- Shown only if admin.js never finished starting up. Without this the
+             page just sits there looking fine, which tells nobody anything. -->
+        <p class="warn-strip" id="boot-warning" hidden>
+          <strong>The page script didn't start.</strong> Sign-in will not work.
+          Reload with a hard refresh (Cmd + Shift + R). If it persists, open the
+          browser console and send the first red error line.
+        </p>
+
+        <!-- Any uncaught error is surfaced here rather than lost to the console,
+             so a silent failure becomes a readable one. -->
+        <p class="warn-strip" id="crash-report" hidden></p>
 
         <div class="field">
           <label for="login-email">Email</label>
