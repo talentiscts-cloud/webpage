@@ -40,11 +40,16 @@
 
         <div class="field">
           <label for="login-email">Email</label>
+          <!-- Mobile keyboards like to capitalise and autocorrect the first
+               word; both are wrong for credentials. -->
           <input
             type="email"
             id="login-email"
             name="email"
             autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
             required
           />
         </div>
@@ -56,8 +61,15 @@
             id="login-password"
             name="password"
             autocomplete="current-password"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
             required
           />
+          <label class="checkbox" for="login-show" style="margin-top: 0.5rem">
+            <input type="checkbox" id="login-show" />
+            <span>Show password</span>
+          </label>
         </div>
 
         <p class="error-text" id="login-error" role="alert" aria-live="assertive"></p>

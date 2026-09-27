@@ -266,7 +266,10 @@
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       var email = document.getElementById("login-email").value.trim();
-      var password = document.getElementById("login-password").value;
+      // Trimmed deliberately. Copying a password out of a message or document
+      // very often drags a trailing space or newline along with it, and a
+      // silent mismatch on invisible whitespace is a miserable thing to debug.
+      var password = document.getElementById("login-password").value.trim();
 
       if (
         email.toLowerCase() === ADMIN_EMAIL.toLowerCase() &&
@@ -277,10 +280,23 @@
         document.getElementById("login-password").value = "";
         enter(email);
       } else {
-        error.textContent = "Those details don't match. Check and try again.";
+        error.textContent =
+          "Those details don't match. The password is case-sensitive \u2014 tick " +
+          "\u201cShow password\u201d to check what you typed.";
         document.getElementById("login-password").select();
       }
     });
+
+    // Let the admin read back what they typed, which is the fastest way to
+    // spot a stray capital or a keyboard-substituted character.
+    var showToggle = document.getElementById("login-show");
+    if (showToggle) {
+      showToggle.addEventListener("change", function () {
+        document.getElementById("login-password").type = showToggle.checked
+          ? "text"
+          : "password";
+      });
+    }
 
     document.getElementById("sign-out").addEventListener("click", function () {
       window.sessionStorage.removeItem(SESSION_KEY);
