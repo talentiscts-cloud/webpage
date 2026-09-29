@@ -469,6 +469,13 @@ strong {
   color: #0a6055;
 }
 
+/* Best-seller badge: amber on navy clears 8.4:1, the strongest pill we have. */
+.pill--best {
+  background: var(--navy-900);
+  color: var(--amber-500);
+  letter-spacing: 0.02em;
+}
+
 .pill--ghost {
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
@@ -672,7 +679,12 @@ strong {
   padding-block: var(--space-3xl);
 }
 
-.hero h1 {
+/* Every heading inside the dark hero must be light. The global heading colour
+   is navy, which on this background measured about 1.1:1 and made the "Live
+   batches" card title effectively invisible. */
+.hero h1,
+.hero h2,
+.hero h3 {
   color: #fff;
 }
 
@@ -1153,6 +1165,36 @@ strong {
 
 @media (min-width: 820px) {
   .track {
+    grid-template-columns: 1fr 250px;
+  }
+}
+
+/* Flagship track: amber rule and a warmer ground so it reads first. */
+.track--featured,
+.card--featured {
+  border: 2px solid var(--amber-500);
+  background: linear-gradient(180deg, #fffaf0 0%, var(--surface) 55%);
+  box-shadow: var(--shadow-md);
+}
+
+.featured-track {
+  display: grid;
+  gap: var(--space-lg);
+  align-items: center;
+}
+
+.featured-track p {
+  color: var(--ink-muted);
+}
+
+.featured-track__cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 820px) {
+  .featured-track {
     grid-template-columns: 1fr 250px;
   }
 }

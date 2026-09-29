@@ -14,6 +14,10 @@ declare(strict_types=1);
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
 
+// Enquiry times, admission dates and lockouts should read in Indian time, not
+// whatever the shared server happens to run on (usually UTC).
+date_default_timezone_set('Asia/Kolkata');
+
 require_once __DIR__ . '/lib/fees.php';
 
 // ---------------------------------------------------------------------------
@@ -357,6 +361,13 @@ function talentis_audit(
 }
 
 // Common boot sequence for every endpoint.
-talentis_start_session($config, $isHttps);
-talentis_check_origin($config);
+//
+// Public endpoints (the website's callback form) define TALENTIS_PUBLIC before
+// including this file. They get NO session, so a stranger submitting a form
+// never receives an admin cookie, and they apply their own origin rules for the
+// public site instead of the dashboard-only list.
+if (!defined('TALENTIS_PUBLIC')) {
+    talentis_start_session($config, $isHttps);
+    talentis_check_origin($config);
+}
 $pdo = talentis_db($config);

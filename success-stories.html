@@ -200,7 +200,7 @@
         <div class="container">
           <div class="section-head">
             <span class="eyebrow">Candidate stories</span>
-            <h2>Six people, six starting points</h2>
+            <h2>Seven people, seven starting points</h2>
             <p>
               Placeholder profiles written to show the range we work with. Replace
               with consented candidate stories and photographs.
@@ -215,6 +215,9 @@
           >
             <button type="button" data-filter="all" aria-pressed="true">
               All tracks
+            </button>
+            <button type="button" data-filter="compliance" aria-pressed="false">
+              Compliance
             </button>
             <button type="button" data-filter="java" aria-pressed="false">
               Full-Stack Java
@@ -236,6 +239,25 @@
           <p class="visually-hidden" data-filter-count aria-live="polite"></p>
 
           <div class="grid grid--3" data-filter-grid>
+            <article class="card story" data-track="compliance">
+              <ul class="tag-list">
+                <li><span class="pill pill--best">&#9733; Compliance</span></li>
+                <li><span class="pill pill--amber">Career switch</span></li>
+              </ul>
+              <h3>Commerce graduate to KYC analyst in eight weeks</h3>
+              <p>
+                A BCom graduate working retail billing, told repeatedly that
+                corporate roles wanted "relevant experience". The case-queue
+                capstone gave her exactly that, and the policy-reading drills are
+                what she credits for clearing the assessment round.
+              </p>
+              <div class="story__jump">
+                <span>Retail billing</span>
+                <span aria-hidden="true">&rarr;</span>
+                <span>KYC / AML Analyst</span>
+              </div>
+            </article>
+
             <article class="card story" data-track="java">
               <ul class="tag-list">
                 <li><span class="pill">Full-Stack Java</span></li>
@@ -565,6 +587,7 @@
           <div>
             <h3>Programs</h3>
             <ul>
+              <li><a href="programs.html#compliance">Compliance-Based Training</a></li>
               <li><a href="programs.html#full-stack-java">Full-Stack Java</a></li>
               <li><a href="programs.html#data-engineering">Data Engineering</a></li>
               <li><a href="programs.html#cloud-devops">Cloud &amp; DevOps</a></li>

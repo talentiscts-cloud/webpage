@@ -181,3 +181,42 @@ SELECT
 FROM candidates c
 LEFT JOIN instalments i ON i.candidate_id = c.id
 GROUP BY c.id;
+
+-- ---------------------------------------------------------------------------
+-- Callback / enquiry inbox. Identical to migrations/002_enquiries.sql, kept
+-- here too so a fresh install gets everything from one file.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS enquiries (
+  id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  kind            ENUM('candidate','employer') NOT NULL DEFAULT 'candidate',
+  name            VARCHAR(160)  NOT NULL,
+  phone           VARCHAR(32)   DEFAULT NULL,
+  email           VARCHAR(190)  DEFAULT NULL,
+  company         VARCHAR(160)  DEFAULT NULL,
+  track           VARCHAR(80)   DEFAULT NULL,
+  current_status  VARCHAR(80)   DEFAULT NULL,
+  batch_format    VARCHAR(40)   DEFAULT NULL,
+  hiring_model    VARCHAR(80)   DEFAULT NULL,
+  positions       VARCHAR(20)   DEFAULT NULL,
+  message         TEXT          DEFAULT NULL,
+  consent         TINYINT(1)    NOT NULL DEFAULT 0,
+  source_page     VARCHAR(120)  DEFAULT NULL,
+  status          ENUM('new','contacted','admitted','not_interested','spam')
+                                NOT NULL DEFAULT 'new',
+  admin_notes     TEXT          DEFAULT NULL,
+  contacted_at    DATETIME      DEFAULT NULL,
+  candidate_id    INT UNSIGNED  DEFAULT NULL,
+  ip_hash         CHAR(64)      DEFAULT NULL,
+  user_agent      VARCHAR(255)  DEFAULT NULL,
+  created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_enquiries_status    (status),
+  KEY idx_enquiries_created   (created_at),
+  KEY idx_enquiries_ip        (ip_hash, created_at),
+  KEY idx_enquiries_candidate (candidate_id),
+  CONSTRAINT fk_enquiries_candidate
+    FOREIGN KEY (candidate_id) REFERENCES candidates (id)
+    ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

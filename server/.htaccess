@@ -48,6 +48,9 @@ RedirectMatch 404 (?i)/tools/
 
 Options -Indexes
 
+# Visiting the bare address opens the dashboard instead of a 403.
+DirectoryIndex admin.html
+
 # --- Content Security Policy ---------------------------------------------
 # The dashboard loads its own CSS and JS plus Google Fonts, and calls only its
 # own API. Inline scripts are needed for the small error-reporting bootstrap in

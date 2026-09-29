@@ -10,3 +10,6 @@ talentis-fees-*.json
 # Local tooling noise
 .DS_Store
 *.log
+
+# Built upload bundles
+dist/
