@@ -1,0 +1,193 @@
+===========================================================================
+TALENTIS FEE DASHBOARD — SERVER INSTALL (Hostinger shared hosting)
+===========================================================================
+
+WHAT THIS IS
+  A small PHP + MySQL backend so candidate records live on a server instead of
+  in one browser. Real accounts, bcrypt passwords, data on every device you
+  sign in from.
+
+  Your public website is NOT affected. It stays on GitHub Pages at
+  mytalentis.in. Only the dashboard moves here.
+
+BEFORE YOU START, HAVE THESE READY
+  - hPanel access
+  - A MySQL database created (hPanel -> Databases -> MySQL Databases).
+    Note the database name, username, and password.
+  - The PHP version (hPanel -> Advanced -> PHP Configuration). Needs 7.4+.
+
+NEVER paste the database password, your hPanel password, or the admin password
+into a chat window. They go into files on the server only.
+
+
+---------------------------------------------------------------------------
+STEP 1 — Create the database
+---------------------------------------------------------------------------
+hPanel -> Databases -> MySQL Databases -> Create.
+Write down the database name, user, and password. The names will look like
+u123456789_talentis and u123456789_admin.
+
+
+---------------------------------------------------------------------------
+STEP 2 — Load the schema
+---------------------------------------------------------------------------
+hPanel -> Databases -> phpMyAdmin -> open your database -> SQL tab.
+Paste the whole contents of schema.sql and run it.
+
+You should end up with five tables (admins, candidates, instalments, settings,
+audit_log) and one view. Re-running it is safe; it will not wipe data.
+
+
+---------------------------------------------------------------------------
+STEP 3 — Upload the files
+---------------------------------------------------------------------------
+Target layout, using the File Manager or FTP:
+
+  /home/uXXXXXXX/
+      talentis-config.php          <- Step 4 creates this. PRIVATE.
+      public_html/
+          admin.html               <- from the site root
+          .htaccess                <- from server/.htaccess
+          assets/
+              css/styles.css
+              css/admin.css
+              js/admin.js
+          api/
+              .htaccess            <- from server/api/.htaccess
+              bootstrap.php
+              auth.php
+              candidates.php
+              payments.php
+              settings.php
+              selftest.php         <- DELETE after Step 6
+              lib/fees.php
+
+Do NOT upload schema.sql, config.sample.php, INSTALL.txt, or the tools folder
+to public_html. They belong nowhere a browser can reach.
+
+
+---------------------------------------------------------------------------
+STEP 4 — Configuration
+---------------------------------------------------------------------------
+Copy config.sample.php to /home/uXXXXXXX/talentis-config.php, ONE LEVEL ABOVE
+public_html, and fill in:
+
+  - db host (usually localhost), name, user, password
+  - allowed_origins: the address you will use. While testing on the temporary
+    Hostinger address, put that; change it to https://admin.mytalentis.in when
+    you attach the subdomain.
+
+Leave 'debug' => false unless you are chasing a problem.
+
+Why above public_html: nothing in that directory can be fetched over the web,
+even if PHP were misconfigured and stopped executing.
+
+
+---------------------------------------------------------------------------
+STEP 5 — Create your admin account
+---------------------------------------------------------------------------
+Passwords are stored as bcrypt hashes. Generate the SQL, do not write it by
+hand.
+
+WITH SSH (hPanel -> Advanced -> SSH Access):
+    php tools/make-hash.php 'you@mytalentis.in' 'your-chosen-password' 'Your Name'
+
+That prints an INSERT statement. Paste it into phpMyAdmin -> SQL and run it.
+Then delete tools/make-hash.php from the server.
+
+NO SSH: run the same command on your own Mac if PHP is installed. Failing
+that, ask and the hash can be generated for you locally — send the hash, never
+the password.
+
+Pick something long and unique. This guards candidate salary records.
+
+
+---------------------------------------------------------------------------
+STEP 6 — Test
+---------------------------------------------------------------------------
+1. Open https://YOUR-ADDRESS/admin.html
+2. Sign in with the account from Step 5.
+   The banner should read "Saved to the server". If it says "Saved in this
+   browser only", the API is not being reached — see TROUBLESHOOTING.
+3. Visit https://YOUR-ADDRESS/api/selftest.php while signed in.
+   It checks PHP version, database, tables, and the fee arithmetic. Expect
+   "all checks passed".
+4. DELETE api/selftest.php.
+
+Then add a real candidate and confirm the figures. Entering a CTC of 453100 at
+10% must show a fee of 45,310 and a total of 50,310, and three EMIs must come
+out as 15,104 + 15,103 + 15,103.
+
+
+---------------------------------------------------------------------------
+STEP 7 — Point admin.mytalentis.in at it (optional, do it last)
+---------------------------------------------------------------------------
+Only once everything works on the temporary address.
+
+1. hPanel -> Domains -> Subdomains: add admin.mytalentis.in
+2. At GoDaddy, add ONE DNS record for the subdomain pointing at the Hostinger
+   IP address shown in hPanel. Type A, host "admin".
+3. Leave every other record alone. The apex mytalentis.in must keep pointing at
+   GitHub Pages, or the public site goes down.
+4. Enable SSL for the subdomain in hPanel and wait for the certificate.
+5. Update allowed_origins in talentis-config.php to the new address.
+
+
+---------------------------------------------------------------------------
+MOVING YOUR EXISTING RECORDS
+---------------------------------------------------------------------------
+Anything typed into the browser-only version is still in that browser.
+
+1. Open the old dashboard, click Export backup, save the JSON file.
+2. Open the new server dashboard, sign in, click Import, choose that file.
+   In server mode it uploads the records rather than replacing local ones.
+3. Check the totals match, then you are done.
+
+
+---------------------------------------------------------------------------
+TROUBLESHOOTING
+---------------------------------------------------------------------------
+"Saved in this browser only" when you expected the server
+  The API did not answer. Open https://YOUR-ADDRESS/api/auth.php?action=me
+  directly. Expect JSON. If you get 404, the api folder is in the wrong place.
+  If you get a config error, config.php was not found or is unreadable.
+
+"config.php was not found"
+  It must be at /home/uXXXXXXX/talentis-config.php, or beside the api folder.
+  Check the filename has no .txt on the end.
+
+"Could not connect to the database"
+  Database name, user or password is wrong in config.php. On Hostinger the
+  username and database name both start with your account number.
+
+"This API only accepts HTTPS requests"
+  SSL is not active for that address yet. Wait for the certificate, or set
+  require_https to false TEMPORARILY while testing. Put it back to true.
+
+"Your session expired" straight after signing in
+  Usually a cookie being dropped because the page is on http rather than https.
+  Sessions are Secure-only by design.
+
+Sign-in says details do not match, and you are sure they do
+  Type it rather than pasting. If it persists, re-run make-hash.php for that
+  email; re-running resets the password for an existing account.
+
+
+---------------------------------------------------------------------------
+THINGS WORTH KNOWING
+---------------------------------------------------------------------------
+The fee percentage is editable in the dashboard under "Fee settings", and can
+also be overridden per candidate. Changing the default only affects candidates
+added afterwards: each candidate stores the rate they were signed up at, so
+nobody gets silently re-priced. Your public website states the rate in its
+copy, so if the standard rate changes, update the Programs page and FAQ too.
+
+All money is stored as whole rupees, and every amount is recalculated on the
+server from the CTC and rate. Nothing the browser sends about money is trusted.
+
+GST is off. When you register, set it in Fee settings and every fee will
+include it.
+
+Candidate salary and payment data brings obligations under India's DPDP Act
+around consent, purpose and safeguards. Worth a professional review before you
+are holding a few hundred records.

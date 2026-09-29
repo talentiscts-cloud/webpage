@@ -1,0 +1,62 @@
+# ===========================================================================
+# Talentis API — Apache hardening. Applies to this directory and below.
+# ===========================================================================
+
+# --- Force HTTPS -----------------------------------------------------------
+# Session cookies are marked Secure, so over plain HTTP sign-in would silently
+# fail. Redirect instead of leaving people confused.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# --- Never serve config, SQL, or anything else private ---------------------
+<FilesMatch "(?i)\.(sql|ini|log|bak|sample|md|txt|yml|yaml|json|lock)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "(?i)^(config|config\.sample|talentis-config)\.php$">
+    Require all denied
+</FilesMatch>
+
+# The shared library and tools are includes, not endpoints. Nothing should
+# request them directly.
+RedirectMatch 404 (?i)/lib/
+RedirectMatch 404 (?i)/tools/
+
+# --- Only the intended endpoints are reachable ----------------------------
+# Anything else PHP that lands in here is not served, so a stray upload cannot
+# become an entry point.
+<FilesMatch "(?i)\.php$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "(?i)^(auth|candidates|payments|settings|selftest)\.php$">
+    Require all granted
+</FilesMatch>
+
+# --- Response headers -----------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Cross-Origin-Resource-Policy "same-origin"
+    # API responses must never be cached by a proxy or the browser.
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, private"
+    Header always unset Pragma
+    # HSTS. Only meaningful once HTTPS works, which it must for this API.
+    Header always set Strict-Transport-Security "max-age=31536000"
+    # Do not advertise the PHP version.
+    Header unset X-Powered-By
+</IfModule>
+
+# --- No directory listings -----------------------------------------------
+Options -Indexes
+
+# --- Keep PHP notices out of the response body ---------------------------
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+    php_value expose_php Off
+</IfModule>

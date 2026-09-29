@@ -1,0 +1,57 @@
+# ===========================================================================
+# Talentis — hardening for the dashboard directory (the admin web root).
+#
+# This file belongs beside admin.html. It assumes the layout described in
+# INSTALL.txt, where the dashboard is served from public_html and the API sits
+# in public_html/api/ with its own stricter .htaccess.
+# ===========================================================================
+
+# --- Force HTTPS -----------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# --- Never serve private files -------------------------------------------
+<FilesMatch "(?i)\.(sql|ini|log|bak|sample|yml|yaml|lock|sh)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "(?i)^(config|config\.sample|talentis-config)\.php$">
+    Require all denied
+</FilesMatch>
+
+# Schema and setup material must not be downloadable.
+<FilesMatch "(?i)^(schema|INSTALL)\.">
+    Require all denied
+</FilesMatch>
+
+RedirectMatch 404 (?i)/tools/
+
+# --- Keep the dashboard out of search engines ----------------------------
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set Referrer-Policy "same-origin"
+    Header always set Strict-Transport-Security "max-age=31536000"
+    Header unset X-Powered-By
+
+    # The dashboard HTML must not be cached, or a stale copy can linger after
+    # an update. Static assets may be cached briefly.
+    <FilesMatch "(?i)\.html$">
+        Header always set Cache-Control "no-store, must-revalidate"
+    </FilesMatch>
+</IfModule>
+
+Options -Indexes
+
+# --- Content Security Policy ---------------------------------------------
+# The dashboard loads its own CSS and JS plus Google Fonts, and calls only its
+# own API. Inline scripts are needed for the small error-reporting bootstrap in
+# admin.html, hence 'unsafe-inline' for scripts; it is scoped to this directory.
+<IfModule mod_headers.c>
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'"
+</IfModule>

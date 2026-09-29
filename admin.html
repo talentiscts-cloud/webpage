@@ -130,6 +130,14 @@
 
         <button class="btn btn--primary" type="submit">Sign in</button>
 
+        <!-- Shown when an API is configured but unreachable, so nobody thinks
+             their records are going to a server when they are not. -->
+        <p class="warn-strip" id="login-server-warn" hidden>
+          <strong>The server could not be reached.</strong> Signing in will use
+          browser-only mode, and records will stay on this machine. Check that
+          the API is uploaded and that config.php has the right database details.
+        </p>
+
         <p class="warn-strip" id="login-storage-warn" hidden>
           <strong>This browser is blocking storage.</strong> You can sign in and
           use the dashboard, but nothing will be saved when you close the tab.
@@ -182,13 +190,16 @@
 
           <div class="warn-strip">
             <p>
-              <strong>Data lives in this browser.</strong> It is not on a server
-              and not shared between devices or browser profiles.
+              <strong>Where data is saved:</strong>
+              <span class="badge badge--due" id="mode-label">Checking&hellip;</span>
+              &nbsp;Current default fee rate:
+              <strong id="rate-label">10%</strong>
+              (change it under <strong>Fee settings</strong>).
             </p>
             <p>
-              Use <strong>Export backup</strong> before clearing your browser data
-              or switching machines, then <strong>Import</strong> on the other
-              side.
+              In browser-only mode nothing reaches a server, so records stay on
+              this machine. Use <strong>Export backup</strong> before clearing
+              browser data or switching devices.
             </p>
           </div>
 
@@ -246,6 +257,13 @@
             </div>
             <span class="toolbar__spacer"></span>
             <div class="toolbar__actions">
+              <button
+                class="btn btn--outline btn--sm"
+                type="button"
+                id="open-settings"
+              >
+                Fee settings
+              </button>
               <button class="btn btn--outline btn--sm" type="button" id="export">
                 Export backup
               </button>
@@ -413,8 +431,25 @@
                   inputmode="numeric"
                   placeholder="453100"
                 />
-                <p class="hint">Enter digits only. The 10% updates as you type.</p>
+                <p class="hint">Digits only. The fee updates as you type.</p>
                 <p class="error-text" id="f-ctc-error" aria-live="polite"></p>
+              </div>
+
+              <div class="field">
+                <label for="f-rate">Fee rate (%)</label>
+                <input
+                  type="number"
+                  id="f-rate"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  inputmode="decimal"
+                  placeholder="10"
+                />
+                <p class="hint" id="f-rate-hint">
+                  Change it here for this candidate only.
+                </p>
+                <p class="error-text" id="f-rate-error" aria-live="polite"></p>
               </div>
             </div>
 
@@ -424,7 +459,7 @@
                 <b id="calc-ctc">&#8377;0</b>
               </div>
               <div class="calc__row">
-                <span>Placement fee at 10%</span>
+                <span id="calc-rate">10% of CTC</span>
                 <b id="calc-fee">&#8377;0</b>
               </div>
               <div class="calc__row">
@@ -435,7 +470,7 @@
                 <span>Total payable by candidate</span>
                 <b id="calc-total">&#8377;5,000</b>
               </div>
-              <p class="calc__hint">No GST applied.</p>
+              <p class="calc__hint" id="calc-gst">No GST applied.</p>
             </div>
           </fieldset>
 
@@ -484,7 +519,9 @@
         </div>
 
         <div class="dialog__foot">
-          <button class="btn btn--primary" type="submit">Save candidate</button>
+          <button class="btn btn--primary" type="submit" id="save-candidate">
+            Save candidate
+          </button>
           <button class="btn btn--outline" type="button" data-close-dialog>
             Cancel
           </button>
@@ -555,6 +592,106 @@
           Cancel
         </button>
       </div>
+    </dialog>
+
+    <!-- ======================= FEE SETTINGS DIALOG ======================= -->
+    <dialog id="settings-dialog" aria-labelledby="sd-title">
+      <form id="settings-form" novalidate onsubmit="return false">
+        <div class="dialog__head">
+          <div>
+            <h2 id="sd-title">Fee settings</h2>
+            <p>Applies to candidates added from now on</p>
+          </div>
+          <button
+            class="icon-btn"
+            type="button"
+            data-close-dialog
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div class="dialog__body">
+          <div class="form__grid">
+            <div class="field">
+              <label for="s-rate">Default fee rate (%)</label>
+              <input
+                type="number"
+                id="s-rate"
+                min="0"
+                max="100"
+                step="0.01"
+                inputmode="decimal"
+              />
+              <p class="hint">
+                Percentage of CTC charged after placement. Fractions are fine,
+                so 12.5 works.
+              </p>
+            </div>
+
+            <div class="field">
+              <label for="s-registration">Registration charge (&#8377;)</label>
+              <input
+                type="number"
+                id="s-registration"
+                min="0"
+                step="1"
+                inputmode="numeric"
+              />
+              <p class="hint">
+                Taken at admission, non-refundable, never deducted from the
+                percentage.
+              </p>
+            </div>
+
+            <div class="field">
+              <label for="s-gst">GST (%)</label>
+              <input
+                type="number"
+                id="s-gst"
+                min="0"
+                max="100"
+                step="1"
+                inputmode="numeric"
+              />
+              <p class="hint">
+                Leave at 0 until you register for GST. Setting it to 18 adds GST
+                to every fee the dashboard calculates.
+              </p>
+            </div>
+          </div>
+
+          <p class="error-text" id="s-error" aria-live="polite"></p>
+
+          <div class="note" style="margin-top: 1rem">
+            <p style="margin: 0">
+              <strong>Existing candidates are not re-priced.</strong> Each one
+              stores the rate they were signed up at, so changing the default
+              here never alters what someone has already been billed. To move a
+              specific candidate to a new rate, edit them and change their own
+              Fee rate field.
+            </p>
+          </div>
+
+          <div class="note" style="margin-top: 1rem">
+            <p style="margin: 0">
+              Your public website states the rate in its copy. If you change the
+              standard rate here, update the fees section on the Programs page
+              and the FAQ to match.
+            </p>
+          </div>
+        </div>
+
+        <div class="dialog__foot">
+          <button class="btn btn--primary" type="submit" id="save-settings">
+            Save settings
+          </button>
+          <button class="btn btn--outline" type="button" data-close-dialog>
+            Cancel
+          </button>
+        </div>
+      </form>
     </dialog>
 
     <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
