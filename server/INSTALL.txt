@@ -41,10 +41,11 @@ audit_log) and one view. Re-running it is safe; it will not wipe data.
 ---------------------------------------------------------------------------
 STEP 3 — Upload the files
 ---------------------------------------------------------------------------
-Target layout, using the File Manager or FTP:
+Target layout, using the File Manager or FTP. On Hostinger each site lives
+under domains/, so for this account it is:
 
-  /home/uXXXXXXX/
-      talentis-config.php          <- Step 4 creates this. PRIVATE.
+  /home/u126132726/domains/mytalentis.in/
+      talentis-config.php          <- server/talentis-config.php. PRIVATE.
       public_html/
           admin.html               <- from the site root
           .htaccess                <- from server/.htaccess

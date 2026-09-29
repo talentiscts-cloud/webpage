@@ -21,14 +21,22 @@ require_once __DIR__ . '/lib/fees.php';
 // ---------------------------------------------------------------------------
 function talentis_load_config(): array
 {
-    $candidates = [
-        // Two levels above public_html/api -> the private home directory.
-        dirname(__DIR__, 3) . '/talentis-config.php',
-        dirname(__DIR__, 2) . '/talentis-config.php',
-        // Fallback: beside the code. Protected by .htaccess, but less safe.
-        __DIR__ . '/../config.php',
-        __DIR__ . '/config.php',
-    ];
+    // Walk upward from the api folder looking for talentis-config.php, so it is
+    // found wherever it sits above public_html. On Hostinger the web root is
+    // /home/uXXX/domains/<domain>/public_html, and a subdomain adds another
+    // level, so a fixed depth would be fragile.
+    $candidates = [];
+    $dir = __DIR__;
+    for ($level = 0; $level < 6; $level++) {
+        $dir = dirname($dir);
+        $candidates[] = $dir . '/talentis-config.php';
+        if ($dir === '/' || $dir === '.' || $dir === '') {
+            break;
+        }
+    }
+    // Fallback: beside the code. Protected by .htaccess, but less safe.
+    $candidates[] = __DIR__ . '/../config.php';
+    $candidates[] = __DIR__ . '/config.php';
 
     foreach ($candidates as $path) {
         if (is_file($path) && is_readable($path)) {

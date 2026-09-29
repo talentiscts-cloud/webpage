@@ -1,0 +1,10 @@
+# GitHub Pages build settings.
+#
+# The server/ folder holds the PHP backend that runs on Hostinger. It lives in
+# this repo for version control but must not be published on the public site.
+# It contains no secrets (the real config file is git-ignored), but there is no
+# reason to serve backend source to the world.
+exclude:
+  - server
+  - .gitignore
+  - README.md

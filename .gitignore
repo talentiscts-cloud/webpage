@@ -1,0 +1,12 @@
+# Real server configuration holds the database password. Never commit it.
+talentis-config.php
+server/config.php
+server/api/config.php
+config.php
+
+# Backups exported from the dashboard contain candidate salary data.
+talentis-fees-*.json
+
+# Local tooling noise
+.DS_Store
+*.log
