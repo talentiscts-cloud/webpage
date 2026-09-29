@@ -180,8 +180,8 @@ THINGS WORTH KNOWING
 The fee percentage is editable in the dashboard under "Fee settings", and can
 also be overridden per candidate. Changing the default only affects candidates
 added afterwards: each candidate stores the rate they were signed up at, so
-nobody gets silently re-priced. Your public website states the rate in its
-copy, so if the standard rate changes, update the Programs page and FAQ too.
+nobody gets silently re-priced. The public website deliberately does not state
+the rate, so changing it here needs no website edit.
 
 All money is stored as whole rupees, and every amount is recalculated on the
 server from the CTC and rate. Nothing the browser sends about money is trusted.
