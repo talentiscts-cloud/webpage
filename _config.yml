@@ -1,10 +1,19 @@
 # GitHub Pages build settings.
 #
-# The server/ folder holds the PHP backend that runs on Hostinger. It lives in
-# this repo for version control but must not be published on the public site.
-# It contains no secrets (the real config file is git-ignored), but there is no
-# reason to serve backend source to the world.
+# This repo holds two things:
+#   1. The public website, published here on GitHub Pages at mytalentis.in.
+#   2. The admin fee dashboard and its PHP backend, which run on Hostinger at
+#      admin.mytalentis.in.
+#
+# Everything in group 2 stays in version control but must NOT be published on
+# the public site. The dashboard in particular: a copy served from here would
+# run in browser-only mode, save records to whoever's browser opened it, and
+# never reach the real database.
 exclude:
   - server
+  - dist
+  - admin.html
+  - assets/js/admin.js
+  - assets/css/admin.css
   - .gitignore
   - README.md
