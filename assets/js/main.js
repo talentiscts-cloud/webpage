@@ -1,7 +1,8 @@
 /* ==========================================================================
    Talentis Consultancy — shared behaviours
    Progressive enhancement only: every page is readable and usable with JS off.
-   No backend yet, so form submissions are validated and acknowledged locally.
+   The callback forms validate here, then submit to the Hostinger API, and only
+   report success once the server confirms the enquiry was stored.
    ========================================================================== */
 (function () {
   "use strict";
@@ -239,17 +240,137 @@
           return;
         }
 
-        // Front end only for now: wire this to the CRM or mail endpoint later.
-        status.className = "form__status form__status--ok";
-        status.textContent =
-          form.getAttribute("data-success-message") ||
-          "Thanks. Your enquiry has been recorded and our team will reply within one working day.";
-        form.reset();
-        Array.prototype.forEach.call(fields, function (field) {
-          showError(field, "");
-        });
+        // Forms without a data-kind are not wired to the server.
+        var kind = form.getAttribute("data-kind");
+        if (!kind) {
+          status.className = "form__status form__status--ok";
+          status.textContent =
+            form.getAttribute("data-success-message") || "Thanks.";
+          return;
+        }
+
+        sendEnquiry(form, kind, fields, status);
       });
     });
+  }
+
+  /* --- Sending an enquiry ------------------------------------------------ */
+
+  /**
+   * Where the callback forms submit. The website is on GitHub Pages and the
+   * database is on Hostinger, so this is a cross-site request; the server only
+   * accepts it from mytalentis.in.
+   */
+  var ENQUIRY_ENDPOINT = "https://admin.mytalentis.in/api/enquire.php";
+
+  var FALLBACK_CONTACT =
+    "Please try again in a moment, or email hello@mytalentis.in.";
+
+  function collectPayload(form, kind) {
+    var payload = { kind: kind, page: window.location.pathname };
+    var elements = form.elements;
+    for (var i = 0; i < elements.length; i++) {
+      var el = elements[i];
+      if (!el.name || el.disabled) continue;
+      if (el.type === "checkbox") {
+        payload[el.name] = el.checked;
+      } else if (el.type !== "submit" && el.type !== "button") {
+        payload[el.name] = (el.value || "").trim();
+      }
+    }
+    return payload;
+  }
+
+  function setBusy(form, busy) {
+    var button = form.querySelector('button[type="submit"]');
+    if (!button) return;
+    if (busy) {
+      button.setAttribute("data-label", button.textContent);
+      button.textContent = "Sending\u2026";
+      button.disabled = true;
+    } else {
+      button.textContent = button.getAttribute("data-label") || button.textContent;
+      button.disabled = false;
+    }
+    form.setAttribute("aria-busy", busy ? "true" : "false");
+  }
+
+  function sendEnquiry(form, kind, fields, status) {
+    var endpoint = form.getAttribute("data-endpoint") || ENQUIRY_ENDPOINT;
+    var payload = collectPayload(form, kind);
+
+    status.className = "form__status";
+    status.textContent = "Sending your request\u2026";
+    setBusy(form, true);
+
+    // Give up after 20 seconds rather than leave someone staring at a spinner.
+    var controller = "AbortController" in window ? new AbortController() : null;
+    var timer = window.setTimeout(function () {
+      if (controller) controller.abort();
+    }, 20000);
+
+    window
+      .fetch(endpoint, {
+        method: "POST",
+        mode: "cors",
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller ? controller.signal : undefined
+      })
+      .then(function (response) {
+        return response
+          .json()
+          .catch(function () {
+            return { ok: false };
+          })
+          .then(function (data) {
+            return { http: response.status, data: data || {} };
+          });
+      })
+      .then(function (result) {
+        var data = result.data;
+
+        if (data.ok === true) {
+          // Only now, with the server's confirmation in hand, tell the visitor
+          // their request is in.
+          status.className = "form__status form__status--ok";
+          status.textContent =
+            data.message ||
+            form.getAttribute("data-success-message") ||
+            "Thanks. Your request is in.";
+          form.reset();
+          Array.prototype.forEach.call(fields, function (field) {
+            showError(field, "");
+          });
+          return;
+        }
+
+        // The server named a field it did not like: show it against that field.
+        if (data.field) {
+          var target = form.querySelector('[name="' + data.field + '"]');
+          if (target) {
+            showError(target, data.message || "Please check this field.");
+            target.focus();
+          }
+        }
+
+        status.className = "form__status form__status--error";
+        status.textContent =
+          data.message ||
+          "We couldn't send your request just now. " + FALLBACK_CONTACT;
+      })
+      .catch(function () {
+        // Network failure or timeout. Their typing is kept so they can retry.
+        status.className = "form__status form__status--error";
+        status.textContent =
+          "We couldn't reach our server, so your request has not been sent. " +
+          FALLBACK_CONTACT;
+      })
+      .then(function () {
+        window.clearTimeout(timer);
+        setBusy(form, false);
+      });
   }
 
   /* --- Footer year ------------------------------------------------------- */

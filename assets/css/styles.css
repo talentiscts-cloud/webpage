@@ -316,6 +316,17 @@ strong {
   text-align: center;
 }
 
+/* Honeypot field on the callback forms. Moved off-screen rather than
+   display:none, because some bots skip fields that are display:none. */
+.hp-field {
+  position: absolute !important;
+  left: -10000px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px;

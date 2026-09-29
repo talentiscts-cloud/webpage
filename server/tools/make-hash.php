@@ -8,7 +8,7 @@
  *
  * Hostinger gives you SSH on most plans (hPanel -> Advanced -> SSH Access):
  *
- *     php tools/make-hash.php 'you@yourdomain.in' 'the-password-you-chose'
+ *     php tools/make-hash.php 'hello@mytalentis.in' 'the-password-you-chose'
  *
  * It prints an INSERT statement. Paste that into phpMyAdmin, then delete this
  * file from the server. Your password is never stored anywhere; only the bcrypt

@@ -46,7 +46,7 @@
    * It is a screen lock, not access control. What protects browser-mode data is
    * that it never leaves the machine.
    */
-  var ADMIN_EMAIL = "admin@talentis.example";
+  var ADMIN_EMAIL = "hello@mytalentis.in";
   var ADMIN_PASSWORD = "change-me-before-use";
 
   /* --- Fallback business defaults (server settings win when connected) --- */
@@ -73,7 +73,11 @@
     },
     mode: "local", // "server" once the API answers
     csrf: "",
-    email: ""
+    email: "",
+    signedIn: false,
+    enquiries: [],
+    enquiryCounts: {},
+    enquiryError: ""
   };
 
   /* ==================================================================== *
@@ -444,6 +448,24 @@
         applyServerSettings(data.settings);
         return data;
       });
+    },
+
+    /* --- Callback requests from the public website --- */
+
+    listEnquiries: function () {
+      return apiCall("enquiries.php", "list", null);
+    },
+
+    updateEnquiry: function (payload) {
+      return apiCall("enquiries.php", "update", payload);
+    },
+
+    admitEnquiry: function (payload) {
+      return apiCall("enquiries.php", "admit", payload);
+    },
+
+    deleteEnquiry: function (id) {
+      return apiCall("enquiries.php", "delete", { id: id });
     }
   };
 
@@ -579,8 +601,32 @@
       }
       writeLocal();
       return Promise.resolve({ settings: state.settings });
+    },
+
+    // Website enquiries arrive on the server, so there is nothing to show when
+    // the dashboard is running from this browser alone.
+    listEnquiries: function () {
+      return Promise.reject(localOnlyError());
+    },
+    updateEnquiry: function () {
+      return Promise.reject(localOnlyError());
+    },
+    admitEnquiry: function () {
+      return Promise.reject(localOnlyError());
+    },
+    deleteEnquiry: function () {
+      return Promise.reject(localOnlyError());
     }
   };
+
+  function localOnlyError() {
+    var err = new Error(
+      "Callback requests are stored on the server. Open the dashboard at " +
+        "admin.mytalentis.in to see them."
+    );
+    err.code = "local_mode";
+    return err;
+  }
 
   function readLocal() {
     try {
@@ -707,12 +753,17 @@
           "Signed in as " + email +
           (state.mode === "server" ? "" : " \u00b7 this browser only");
       }
+      state.signedIn = true;
       refresh();
+      startEnquiries();
     }
 
     function leave() {
       appEl.hidden = true;
       screenEl.hidden = false;
+      state.signedIn = false;
+      stopEnquiries();
+      state.enquiries = [];
       state.candidates = [];
       document.getElementById("login-email").focus();
     }
@@ -1395,6 +1446,498 @@
   }
 
   /* ==================================================================== *
+   * Tabs                                                                 *
+   * ==================================================================== */
+
+  function showTab(name) {
+    var tabs = document.querySelectorAll("[data-tab]");
+    Array.prototype.forEach.call(tabs, function (tab) {
+      var active = tab.getAttribute("data-tab") === name;
+      tab.setAttribute("aria-selected", String(active));
+      var panel = document.getElementById(tab.getAttribute("aria-controls"));
+      if (panel) panel.hidden = !active;
+    });
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", "#" + name);
+    }
+  }
+
+  function initTabs() {
+    var tabs = document.querySelectorAll("[data-tab]");
+    Array.prototype.forEach.call(tabs, function (tab) {
+      tab.addEventListener("click", function () {
+        showTab(tab.getAttribute("data-tab"));
+        if (tab.getAttribute("data-tab") === "enquiries") loadEnquiries(true);
+      });
+    });
+
+    // Arrow keys move between tabs, as the tab pattern expects.
+    var list = document.querySelector(".admin-tabs");
+    if (list) {
+      list.addEventListener("keydown", function (event) {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        var all = Array.prototype.slice.call(tabs);
+        var i = all.indexOf(document.activeElement);
+        if (i === -1) return;
+        var next = all[(i + (event.key === "ArrowRight" ? 1 : all.length - 1)) % all.length];
+        next.focus();
+        next.click();
+      });
+    }
+
+    showTab(window.location.hash === "#candidates" ? "candidates" : "enquiries");
+  }
+
+  /* ==================================================================== *
+   * Enquiries — callback requests from the public website                *
+   * ==================================================================== */
+
+  var ENQ_STATUS = {
+    new: ["badge--due", "New"],
+    contacted: ["badge--training", "Contacted"],
+    admitted: ["badge--placed", "Admitted"],
+    not_interested: ["badge--withdrawn", "Not interested"],
+    spam: ["badge--withdrawn", "Spam"]
+  };
+
+  var enquiryTimer = null;
+  var lastNewCount = null;
+  var viewingEnquiryId = null;
+
+  /** MySQL "2026-09-29 20:15:03" (already IST) -> a Date in local time. */
+  function parseDbTime(value) {
+    if (!value) return null;
+    var m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (!m) return null;
+    return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
+  }
+
+  function whenLabel(value) {
+    var d = parseDbTime(value);
+    if (!d) return { stamp: "\u2014", ago: "" };
+    var diff = (Date.now() - d.getTime()) / 1000;
+    var stamp = d.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      hour: "numeric",
+      minute: "2-digit"
+    });
+    var ago = "";
+    if (diff >= 0 && diff < 60) ago = "just now";
+    else if (diff >= 0 && diff < 3600) ago = Math.floor(diff / 60) + " min ago";
+    else if (diff >= 0 && diff < 86400) ago = Math.floor(diff / 3600) + " h ago";
+    else if (diff >= 0 && diff < 172800) ago = "yesterday";
+    return { stamp: stamp, ago: ago };
+  }
+
+  function enquiryStatusBadge(status) {
+    var pair = ENQ_STATUS[status] || ENQ_STATUS.new;
+    return '<span class="badge ' + pair[0] + '">' + pair[1] + "</span>";
+  }
+
+  function findEnquiry(id) {
+    for (var i = 0; i < state.enquiries.length; i++) {
+      if (String(state.enquiries[i].id) === String(id)) return state.enquiries[i];
+    }
+    return null;
+  }
+
+  function startEnquiries() {
+    lastNewCount = null;
+    loadEnquiries(true);
+    stopEnquiries();
+    // Check for new requests every minute while the tab is visible. Cheap: one
+    // small query, and nothing at all when the page is in the background.
+    enquiryTimer = window.setInterval(function () {
+      if (document.visibilityState === "visible" && state.signedIn) {
+        loadEnquiries(true);
+      }
+    }, 60000);
+  }
+
+  function stopEnquiries() {
+    if (enquiryTimer) {
+      window.clearInterval(enquiryTimer);
+      enquiryTimer = null;
+    }
+  }
+
+  function loadEnquiries(quiet) {
+    if (state.mode !== "server") {
+      state.enquiries = [];
+      state.enquiryError = localOnlyError().message;
+      renderEnquiries();
+      return Promise.resolve();
+    }
+
+    return backend
+      .listEnquiries()
+      .then(function (data) {
+        state.enquiries = data.enquiries || [];
+        state.enquiryCounts = data.counts || {};
+        state.enquiryError = "";
+
+        var newCount = Number(state.enquiryCounts["new"]) || 0;
+        if (lastNewCount !== null && newCount > lastNewCount) {
+          var added = newCount - lastNewCount;
+          toast(
+            added === 1
+              ? "1 new callback request just arrived."
+              : added + " new callback requests just arrived."
+          );
+        }
+        lastNewCount = newCount;
+        renderEnquiries();
+      })
+      .catch(function (err) {
+        state.enquiryError = describeError(err);
+        renderEnquiries();
+        if (!quiet) toast(state.enquiryError);
+      });
+  }
+
+  function visibleEnquiries() {
+    var term = document.getElementById("enq-search").value.trim().toLowerCase();
+    var status = document.getElementById("enq-status-filter").value;
+    var kind = document.getElementById("enq-kind-filter").value;
+
+    return state.enquiries.filter(function (e) {
+      if (kind !== "all" && e.kind !== kind) return false;
+      if (status === "open") {
+        if (e.status !== "new" && e.status !== "contacted") return false;
+      } else if (status !== "all" && e.status !== status) {
+        return false;
+      }
+      if (!term) return true;
+      return [e.name, e.phone, e.email, e.company]
+        .join(" ")
+        .toLowerCase()
+        .indexOf(term) !== -1;
+    });
+  }
+
+  function renderEnquiries() {
+    var counts = state.enquiryCounts || {};
+    ["new", "contacted", "admitted", "not_interested"].forEach(function (k) {
+      var el = document.getElementById("enq-t-" + k);
+      if (el) el.textContent = Number(counts[k]) || 0;
+    });
+
+    var badge = document.getElementById("enq-new-count");
+    var newCount = Number(counts["new"]) || 0;
+    if (badge) {
+      badge.textContent = newCount;
+      badge.hidden = newCount === 0;
+    }
+
+    var tbody = document.getElementById("enq-rows");
+    var wrap = document.getElementById("enq-table-wrap");
+    var empty = document.getElementById("enq-empty");
+    var emptyTitle = document.getElementById("enq-empty-title");
+    var emptyText = document.getElementById("enq-empty-text");
+
+    if (state.enquiryError) {
+      wrap.hidden = true;
+      empty.hidden = false;
+      emptyTitle.textContent =
+        state.mode === "server"
+          ? "Could not load callback requests"
+          : "Callback requests need the server";
+      emptyText.textContent = state.enquiryError;
+      tbody.innerHTML = "";
+      return;
+    }
+
+    if (!state.enquiries.length) {
+      wrap.hidden = true;
+      empty.hidden = false;
+      emptyTitle.textContent = "No callback requests yet";
+      emptyText.textContent =
+        "When someone fills in the form on the Contact or Employers page, it appears here.";
+      tbody.innerHTML = "";
+      return;
+    }
+
+    var list = visibleEnquiries();
+    wrap.hidden = false;
+    empty.hidden = true;
+
+    document.getElementById("enq-live").textContent =
+      list.length + (list.length === 1 ? " request shown" : " requests shown");
+
+    if (!list.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="7" style="text-align:center;color:var(--ink-muted)">' +
+        "Nothing matches that filter. Try Status: All.</td></tr>";
+      return;
+    }
+
+    tbody.innerHTML = list
+      .map(function (e) {
+        var when = whenLabel(e.createdAt);
+        var interest =
+          e.kind === "employer"
+            ? [e.company, e.positions ? e.positions + " roles" : ""]
+                .filter(Boolean)
+                .join(" \u00b7 ")
+            : e.track || "Not specified";
+        var contact = [];
+        if (e.phone) {
+          contact.push(
+            '<a href="tel:' + escapeHTML(e.phone.replace(/[^0-9+]/g, "")) + '">' +
+              escapeHTML(e.phone) + "</a>"
+          );
+        }
+        if (e.email) {
+          contact.push(
+            '<a href="mailto:' + escapeHTML(e.email) + '">' + escapeHTML(e.email) + "</a>"
+          );
+        }
+
+        return (
+          '<tr class="' + (e.status === "new" ? "is-new" : "") + '">' +
+          '<td class="when">' + escapeHTML(when.stamp || "\u2014") +
+          (when.ago ? "<small>" + escapeHTML(when.ago) + "</small>" : "") +
+          "</td>" +
+          '<td class="name">' + escapeHTML(e.name) + "</td>" +
+          '<td class="contact">' + (contact.join("<br>") || "\u2014") + "</td>" +
+          "<td>" + escapeHTML(interest || "\u2014") + "</td>" +
+          "<td>" + (e.kind === "employer" ? "Employer" : "Candidate") + "</td>" +
+          "<td>" + enquiryStatusBadge(e.status) + "</td>" +
+          '<td><button class="btn btn--sm btn--secondary" type="button" data-enq-open="' +
+          escapeHTML(e.id) + '">Open</button></td>' +
+          "</tr>"
+        );
+      })
+      .join("");
+  }
+
+  function openEnquiry(id) {
+    var e = findEnquiry(id);
+    if (!e) return;
+    viewingEnquiryId = e.id;
+
+    var when = whenLabel(e.createdAt);
+    document.getElementById("eq-title").textContent = e.name;
+    document.getElementById("eq-sub").textContent =
+      (e.kind === "employer" ? "Hiring request" : "Callback request") +
+      " \u00b7 received " + (when.stamp || "") + (when.ago ? " (" + when.ago + ")" : "");
+
+    // Contact block: tap to call or email straight from the dialog.
+    var contact = [];
+    if (e.phone) {
+      contact.push(
+        '<a class="btn btn--primary btn--sm" href="tel:' +
+          escapeHTML(e.phone.replace(/[^0-9+]/g, "")) + '">Call ' +
+          escapeHTML(e.phone) + "</a>"
+      );
+    }
+    if (e.email) {
+      contact.push(
+        '<a class="btn btn--outline btn--sm" href="mailto:' + escapeHTML(e.email) +
+          '">Email ' + escapeHTML(e.email) + "</a>"
+      );
+    }
+    document.getElementById("eq-contact").innerHTML = contact.join(" ");
+
+    var rows =
+      e.kind === "employer"
+        ? [
+            ["Company", e.company],
+            ["Hiring model", e.hiringModel],
+            ["Positions", e.positions]
+          ]
+        : [
+            ["Track of interest", e.track],
+            ["Current status", e.currentStatus],
+            ["Preferred batch", e.batchFormat]
+          ];
+    rows.push(["Submitted from", e.sourcePage]);
+    if (e.contactedAt) rows.push(["First contacted", whenLabel(e.contactedAt).stamp]);
+
+    document.getElementById("eq-details").innerHTML = rows
+      .map(function (r) {
+        return (
+          "<div><dt>" + escapeHTML(r[0]) + "</dt><dd>" +
+          escapeHTML(r[1] || "\u2014") + "</dd></div>"
+        );
+      })
+      .join("");
+
+    var messageWrap = document.getElementById("eq-message-wrap");
+    messageWrap.hidden = !e.message;
+    document.getElementById("eq-message").textContent = e.message || "";
+
+    var statusSelect = document.getElementById("eq-status");
+    statusSelect.value = e.status;
+    statusSelect.disabled = e.status === "admitted";
+    document.getElementById("eq-notes").value = e.notes || "";
+    document.getElementById("eq-error").textContent = "";
+
+    var isCandidate = e.kind === "candidate";
+    var admitted = !!e.candidateId;
+    document.getElementById("eq-admit-panel").hidden = !isCandidate || admitted;
+    document.getElementById("eq-admit").hidden = !isCandidate || admitted;
+    document.getElementById("eq-open-candidate").hidden = !admitted;
+    document.getElementById("eq-admitted-note").hidden = !admitted;
+
+    document.getElementById("eq-reg-paid").checked = false;
+    document.getElementById("eq-reg-date").value = todayISO();
+    document.getElementById("eq-reg-label").textContent =
+      money(state.settings.registrationAmount) + " registration received";
+
+    document.getElementById("enquiry-dialog").showModal();
+  }
+
+  function replaceEnquiry(updated) {
+    if (!updated) return;
+    for (var i = 0; i < state.enquiries.length; i++) {
+      if (String(state.enquiries[i].id) === String(updated.id)) {
+        state.enquiries[i] = updated;
+        return;
+      }
+    }
+  }
+
+  function initEnquiries() {
+    ["enq-search", "enq-status-filter", "enq-kind-filter"].forEach(function (id) {
+      var el = document.getElementById(id);
+      el.addEventListener("input", renderEnquiries);
+      el.addEventListener("change", renderEnquiries);
+    });
+
+    document.getElementById("enq-refresh").addEventListener("click", function () {
+      loadEnquiries(false).then(function () {
+        if (!state.enquiryError) toast("Up to date.");
+      });
+    });
+
+    document.getElementById("enq-rows").addEventListener("click", function (event) {
+      var btn = event.target.closest("[data-enq-open]");
+      if (btn) openEnquiry(btn.getAttribute("data-enq-open"));
+    });
+
+    // Save status and notes.
+    document.getElementById("eq-save").addEventListener("click", function () {
+      var e = findEnquiry(viewingEnquiryId);
+      if (!e) return;
+      var button = this;
+      var error = document.getElementById("eq-error");
+      button.disabled = true;
+      error.textContent = "";
+
+      backend
+        .updateEnquiry({
+          id: e.id,
+          status: e.status === "admitted" ? "admitted" : document.getElementById("eq-status").value,
+          notes: document.getElementById("eq-notes").value
+        })
+        .then(function (data) {
+          replaceEnquiry(data.enquiry);
+          return loadEnquiries(true);
+        })
+        .then(function () {
+          document.getElementById("enquiry-dialog").close();
+          toast("Saved.");
+        })
+        .catch(function (err) {
+          error.textContent = describeError(err);
+        })
+        .then(function () {
+          button.disabled = false;
+        });
+    });
+
+    // Admit: create the candidate, then take the admin straight to it.
+    document.getElementById("eq-admit").addEventListener("click", function () {
+      var e = findEnquiry(viewingEnquiryId);
+      if (!e) return;
+      var ok = window.confirm(
+        "Admit " + e.name + " as a candidate?\n\n" +
+          "This creates their record in Candidates & fees, dated today."
+      );
+      if (!ok) return;
+
+      var button = this;
+      var error = document.getElementById("eq-error");
+      button.disabled = true;
+      error.textContent = "";
+
+      var candidateId = null;
+      var paid = document.getElementById("eq-reg-paid").checked;
+
+      backend
+        .admitEnquiry({
+          id: e.id,
+          registrationPaid: paid,
+          registrationDate: paid ? document.getElementById("eq-reg-date").value : null
+        })
+        .then(function (data) {
+          candidateId = data.candidateId;
+          replaceEnquiry(data.enquiry);
+          return Promise.all([backend.list(), loadEnquiries(true)]);
+        })
+        .then(function () {
+          render();
+          document.getElementById("enquiry-dialog").close();
+          showTab("candidates");
+          toast(
+            e.name + " admitted" +
+              (paid ? " with registration received." : ". Registration still due.") +
+              " Add their CTC once they're placed."
+          );
+          if (candidateId != null) openCandidate(candidateId);
+        })
+        .catch(function (err) {
+          error.textContent = describeError(err);
+        })
+        .then(function () {
+          button.disabled = false;
+        });
+    });
+
+    document.getElementById("eq-open-candidate").addEventListener("click", function () {
+      var e = findEnquiry(viewingEnquiryId);
+      if (!e || !e.candidateId) return;
+      document.getElementById("enquiry-dialog").close();
+      showTab("candidates");
+      var go = function () {
+        if (findCandidate(e.candidateId)) openCandidate(e.candidateId);
+        else toast("That candidate record was deleted.");
+      };
+      if (findCandidate(e.candidateId)) go();
+      else backend.list().then(function () { render(); go(); });
+    });
+
+    document.getElementById("eq-delete").addEventListener("click", function () {
+      var e = findEnquiry(viewingEnquiryId);
+      if (!e) return;
+      var ok = window.confirm(
+        "Delete this request from " + e.name + "?\n\n" +
+          "Use this for spam or test entries. " +
+          (e.candidateId ? "Their candidate record is not affected." : "This cannot be undone.")
+      );
+      if (!ok) return;
+
+      backend
+        .deleteEnquiry(e.id)
+        .then(function () {
+          state.enquiries = state.enquiries.filter(function (x) {
+            return String(x.id) !== String(e.id);
+          });
+          return loadEnquiries(true);
+        })
+        .then(function () {
+          document.getElementById("enquiry-dialog").close();
+          toast("Request deleted.");
+        })
+        .catch(function (err) {
+          document.getElementById("eq-error").textContent = describeError(err);
+        });
+    });
+  }
+
+  /* ==================================================================== *
    * Export / import                                                      *
    * ==================================================================== */
 
@@ -1617,6 +2160,8 @@
   }
 
   function init() {
+    step("tabs", initTabs);
+    step("enquiries", initEnquiries);
     step("payments dialog", initPaymentsDialog);
     step("settings dialog", initSettingsDialog);
     step("backup", initBackup);

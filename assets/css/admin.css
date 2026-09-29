@@ -532,3 +532,150 @@ dialog::backdrop {
     display: none;
   }
 }
+
+/* --- Section tabs ------------------------------------------------------- */
+.admin-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  border-bottom: 1px solid var(--line-strong);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-0);
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.admin-tab:hover {
+  color: var(--navy-900);
+}
+
+.admin-tab[aria-selected="true"] {
+  color: var(--navy-900);
+  border-bottom-color: var(--amber-500);
+}
+
+.tab-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--navy-900);
+  color: var(--amber-500);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tab-count[hidden] {
+  display: none;
+}
+
+/* --- Enquiry list -------------------------------------------------------- */
+.admin-table tr.is-new td {
+  background: #fffaf0;
+}
+
+.admin-table tr.is-new td:first-child {
+  box-shadow: inset 4px 0 0 var(--amber-500);
+}
+
+.admin-table td.when {
+  white-space: nowrap;
+}
+
+.admin-table td.when small {
+  display: block;
+  color: var(--ink-muted);
+}
+
+.admin-table td.contact a {
+  white-space: nowrap;
+}
+
+/* --- Enquiry detail dialog ---------------------------------------------- */
+.enq-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.enq-contact:empty {
+  display: none;
+}
+
+.enq-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: var(--space-sm) var(--space-lg);
+  margin: 0 0 var(--space-lg);
+}
+
+.enq-details dt {
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.enq-details dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--navy-900);
+}
+
+.enq-message {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.enq-message[hidden] {
+  display: none;
+}
+
+.enq-message h3 {
+  font-size: var(--step-0);
+  margin-bottom: var(--space-xs);
+}
+
+.enq-message p {
+  margin: 0;
+  white-space: pre-wrap;
+  max-width: none;
+}
+
+.admit-panel {
+  margin-top: var(--space-lg);
+  border: 2px solid var(--teal-500);
+  background: var(--teal-100);
+  border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg);
+}
+
+.admit-panel h3 {
+  font-size: var(--step-0);
+  margin-bottom: var(--space-2xs);
+}
+
+.admit-panel p {
+  font-size: var(--step--1);
+  color: #0a4d44;
+}

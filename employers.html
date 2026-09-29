@@ -418,8 +418,8 @@
               <p>
                 Prefer to talk first?
                 <a href="tel:+910000000000">+91 00000 00000</a> or
-                <a href="mailto:partners@talentis.example"
-                  >partners@talentis.example</a
+                <a href="mailto:hello@mytalentis.in"
+                  >hello@mytalentis.in</a
                 >.
               </p>
             </div>
@@ -428,9 +428,21 @@
           <form
             class="form"
             data-validate
+            data-kind="employer"
             data-success-message="Thanks. Your requirement has been logged and a recruiter will contact you within one working day."
             novalidate
           >
+            <!-- Spam trap: hidden from people, filled in by bots. -->
+            <div class="hp-field" aria-hidden="true">
+              <label for="emp-website">Leave this field empty</label>
+              <input
+                type="text"
+                id="emp-website"
+                name="website"
+                tabindex="-1"
+                autocomplete="off"
+              />
+            </div>
             <h3>Hiring requirement</h3>
             <div class="form__grid">
               <div class="field">
@@ -588,10 +600,7 @@
               role="status"
               aria-live="polite"
             ></p>
-            <p class="hint" style="margin-top: 1rem">
-              Front-end demo only: this form validates and confirms locally.
-              Connect it to your CRM or mail endpoint before launch.
-            </p>
+
           </form>
         </div>
       </section>
@@ -830,8 +839,8 @@
             <h3>Get in touch</h3>
             <ul>
               <li>
-                <a href="mailto:hello@talentis.example"
-                  >hello@talentis.example</a
+                <a href="mailto:hello@mytalentis.in"
+                  >hello@mytalentis.in</a
                 >
               </li>
               <li><a href="tel:+910000000000">+91 00000 00000</a></li>

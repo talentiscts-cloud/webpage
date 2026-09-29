@@ -175,6 +175,140 @@
 
       <main class="admin-main" id="main">
         <div class="container">
+          <nav class="admin-tabs" role="tablist" aria-label="Dashboard sections">
+            <button
+              class="admin-tab"
+              type="button"
+              role="tab"
+              id="tab-enquiries"
+              aria-controls="view-enquiries"
+              aria-selected="false"
+              data-tab="enquiries"
+            >
+              Enquiries
+              <span class="tab-count" id="enq-new-count" hidden>0</span>
+            </button>
+            <button
+              class="admin-tab"
+              type="button"
+              role="tab"
+              id="tab-candidates"
+              aria-controls="view-candidates"
+              aria-selected="true"
+              data-tab="candidates"
+            >
+              Candidates &amp; fees
+            </button>
+          </nav>
+
+          <!-- ======================= ENQUIRIES VIEW ======================= -->
+          <section
+            id="view-enquiries"
+            role="tabpanel"
+            aria-labelledby="tab-enquiries"
+            hidden
+          >
+            <div class="admin-title">
+              <div>
+                <h1>Callback requests</h1>
+                <p>
+                  Everything submitted through the Contact and Employers forms on
+                  mytalentis.in. Admit a candidate to move them into Candidates
+                  &amp; fees.
+                </p>
+              </div>
+              <button class="btn btn--outline" type="button" id="enq-refresh">
+                Refresh
+              </button>
+            </div>
+
+            <dl class="tiles" id="enq-tiles">
+              <div class="tile tile--accent">
+                <dt>New</dt>
+                <dd id="enq-t-new">0</dd>
+              </div>
+              <div class="tile">
+                <dt>Contacted</dt>
+                <dd id="enq-t-contacted">0</dd>
+              </div>
+              <div class="tile tile--good">
+                <dt>Admitted</dt>
+                <dd id="enq-t-admitted">0</dd>
+              </div>
+              <div class="tile">
+                <dt>Not interested</dt>
+                <dd id="enq-t-not_interested">0</dd>
+              </div>
+            </dl>
+
+            <div class="toolbar">
+              <div class="field">
+                <label for="enq-search">Search</label>
+                <input
+                  type="search"
+                  id="enq-search"
+                  placeholder="Name, phone, email or company"
+                />
+              </div>
+              <div class="field">
+                <label for="enq-status-filter">Status</label>
+                <select id="enq-status-filter">
+                  <option value="open">Open (new + contacted)</option>
+                  <option value="new">New</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="admitted">Admitted</option>
+                  <option value="not_interested">Not interested</option>
+                  <option value="spam">Spam</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="enq-kind-filter">From</label>
+                <select id="enq-kind-filter">
+                  <option value="all">Everyone</option>
+                  <option value="candidate">Candidates</option>
+                  <option value="employer">Employers</option>
+                </select>
+              </div>
+            </div>
+
+            <p class="visually-hidden" id="enq-live" aria-live="polite"></p>
+
+            <div class="admin-table-wrap" id="enq-table-wrap">
+              <table class="admin-table">
+                <caption class="visually-hidden">
+                  Callback requests from the public website.
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Received</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Interested in</th>
+                    <th scope="col">From</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="enq-rows"></tbody>
+              </table>
+            </div>
+
+            <div class="admin-empty" id="enq-empty" hidden>
+              <h2 id="enq-empty-title">No callback requests yet</h2>
+              <p id="enq-empty-text">
+                When someone fills in the form on the Contact or Employers page,
+                it appears here.
+              </p>
+            </div>
+          </section>
+
+          <!-- ======================= CANDIDATES VIEW ======================= -->
+          <section
+            id="view-candidates"
+            role="tabpanel"
+            aria-labelledby="tab-candidates"
+          >
           <div class="admin-title">
             <div>
               <h1>Candidates &amp; fees</h1>
@@ -318,6 +452,7 @@
               + Add candidate
             </button>
           </div>
+          </section>
         </div>
       </main>
     </div>
@@ -690,6 +825,106 @@
           </button>
           <button class="btn btn--outline" type="button" data-close-dialog>
             Cancel
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ======================= ENQUIRY DETAIL DIALOG ======================= -->
+    <dialog id="enquiry-dialog" aria-labelledby="eq-title">
+      <form id="enquiry-form" novalidate onsubmit="return false">
+        <div class="dialog__head">
+          <div>
+            <h2 id="eq-title">Callback request</h2>
+            <p id="eq-sub">&nbsp;</p>
+          </div>
+          <button
+            class="icon-btn"
+            type="button"
+            data-close-dialog
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        <div class="dialog__body">
+          <div class="enq-contact" id="eq-contact"></div>
+
+          <dl class="enq-details" id="eq-details"></dl>
+
+          <div class="enq-message" id="eq-message-wrap">
+            <h3>What they told us</h3>
+            <p id="eq-message"></p>
+          </div>
+
+          <div class="form__grid" style="margin-top: 1.25rem">
+            <div class="field">
+              <label for="eq-status">Status</label>
+              <select id="eq-status">
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="not_interested">Not interested</option>
+                <option value="spam">Spam</option>
+                <option value="admitted" disabled>Admitted (use the button)</option>
+              </select>
+            </div>
+            <div class="field field--full">
+              <label for="eq-notes">Your notes</label>
+              <textarea
+                id="eq-notes"
+                rows="3"
+                style="min-height: 84px"
+                placeholder="Called 2 Oct, interested in the weekend batch, will decide by Friday."
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Admit panel: candidate enquiries only -->
+          <div class="admit-panel" id="eq-admit-panel">
+            <h3>Admit this candidate</h3>
+            <p>
+              Creates a record in Candidates &amp; fees with their name, phone,
+              email and track filled in, dated today. Their background is copied
+              into the candidate's notes.
+            </p>
+            <div class="form__grid">
+              <div class="field">
+                <label class="checkbox" for="eq-reg-paid">
+                  <input type="checkbox" id="eq-reg-paid" />
+                  <span id="eq-reg-label">&#8377;5,000 registration received</span>
+                </label>
+              </div>
+              <div class="field">
+                <label for="eq-reg-date">Date received</label>
+                <input type="date" id="eq-reg-date" />
+              </div>
+            </div>
+          </div>
+
+          <div class="note" id="eq-admitted-note" hidden>
+            <p style="margin: 0">
+              <strong>Already admitted.</strong> This enquiry became a candidate
+              record. Use <strong>Open candidate</strong> to see it.
+            </p>
+          </div>
+
+          <p class="error-text" id="eq-error" aria-live="polite"></p>
+        </div>
+
+        <div class="dialog__foot">
+          <button class="btn btn--primary" type="button" id="eq-admit">
+            Admit as candidate
+          </button>
+          <button class="btn btn--primary" type="button" id="eq-open-candidate" hidden>
+            Open candidate
+          </button>
+          <button class="btn btn--outline" type="button" id="eq-save">
+            Save status &amp; notes
+          </button>
+          <span class="spacer"></span>
+          <button class="btn btn--sm btn--outline" type="button" id="eq-delete">
+            Delete
           </button>
         </div>
       </form>

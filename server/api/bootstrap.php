@@ -152,6 +152,9 @@ function talentis_db(array $config): PDO
             // Real prepared statements, not client-side interpolation.
             PDO::ATTR_EMULATE_PREPARES   => false,
         ]);
+        // Match PHP's Asia/Kolkata so NOW(), created_at and the rate-limit
+        // windows all agree on what time it is.
+        $pdo->exec("SET time_zone = '+05:30'");
     } catch (PDOException $e) {
         talentis_fail(500, 'db_unavailable',
             'Could not connect to the database. Check the details in config.php.',

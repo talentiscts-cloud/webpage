@@ -32,7 +32,7 @@ RedirectMatch 404 (?i)/tools/
 <FilesMatch "(?i)\.php$">
     Require all denied
 </FilesMatch>
-<FilesMatch "(?i)^(auth|candidates|payments|settings|selftest)\.php$">
+<FilesMatch "(?i)^(auth|candidates|payments|settings|enquire|enquiries|selftest)\.php$">
     Require all granted
 </FilesMatch>
 
