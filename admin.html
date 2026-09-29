@@ -20,8 +20,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/styles.css" />
-    <link rel="stylesheet" href="assets/css/admin.css" />
+    <!--
+      The ?v= tag forces browsers to fetch fresh copies after an update.
+      Hostinger tells browsers to cache CSS and JS for 7 days, so without it an
+      updated dashboard keeps running last week's script. BUMP THIS VALUE
+      (all three places, same value) whenever admin.js or the CSS changes.
+    -->
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260930" />
+    <link rel="stylesheet" href="assets/css/admin.css?v=20260930" />
     <script>
       /* Runs before anything else so it can catch failures in admin.js itself.
          Turns "nothing happened" into a message on screen. */
@@ -932,6 +938,6 @@
 
     <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
 
-    <script src="assets/js/admin.js"></script>
+    <script src="assets/js/admin.js?v=20260930"></script>
   </body>
 </html>
